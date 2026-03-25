@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al-Huffaz | Progress Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; }
+    </style>
+</head>
+<body class="text-slate-900">
+
+    <nav class="bg-white border-b border-stone-200 p-4 shadow-sm sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-emerald-700 font-bold flex items-center gap-2 hover:text-emerald-800 transition">
+                <span>← Back to Home</span>
+            </a>
+            <div class="flex gap-3">
+                <button id="logout-btn" class="hidden text-stone-500 font-bold text-sm hover:text-rose-600 transition px-3">Log Out</button>
+                <a href="play.html" class="bg-emerald-700 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-emerald-800 transition shadow-sm">
+                    Continue Learning
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto px-6 py-12">
+        
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-black text-slate-900 mb-3">Your Hifz Journey</h1>
+            <p id="user-greeting" class="text-stone-500 font-medium">Track your memorization progress and milestones.</p>
+        </div>
+
+        <div class="bg-white p-8 sm:p-12 rounded-3xl shadow-lg border border-stone-200 text-center relative overflow-hidden">
+            
+            <div class="absolute -top-10 -right-10 text-emerald-50 opacity-50 w-64 h-64 pointer-events-none">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+            </div>
+
+            <div class="relative inline-block mb-6">
+                <svg class="w-32 h-32 text-emerald-500 drop-shadow-md mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pt-2">
+                    <span class="text-white text-sm font-bold uppercase tracking-widest opacity-90">Level</span>
+                    <span id="dash-level" class="text-white text-4xl font-black leading-none mt-1">...</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 sm:gap-10 mb-10 border-t border-b border-stone-100 py-8">
+                <div>
+                    <div class="text-stone-400 font-bold uppercase tracking-widest text-xs mb-2">Lifetime XP</div>
+                    <div id="dash-xp" class="text-4xl font-black text-emerald-700">...</div>
+                </div>
+                <div>
+                    <div class="text-stone-400 font-bold uppercase tracking-widest text-xs mb-2">Unique Ayahs</div>
+                    <div id="dash-ayahs" class="text-4xl font-black text-emerald-700">...</div>
+                </div>
+            </div>
+
+            <div class="text-left bg-stone-50 p-6 rounded-2xl border border-stone-200">
+                <div class="flex justify-between items-end mb-2">
+                    <div class="text-sm font-bold text-stone-600">Progress to Next Level</div>
+                    <div id="dash-xp-needed" class="font-bold text-emerald-600 text-sm">Calculating...</div>
+                </div>
+                <div class="w-full bg-stone-200 rounded-full h-3 shadow-inner overflow-hidden">
+                    <div id="dash-progress-bar" class="bg-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div id="sync-status" class="mt-6 text-xs font-bold text-stone-400 uppercase tracking-widest">
+                Checking Cloud Sync...
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // Your exact Firebase keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaW7DUhp7pufEbCjOWNIr0kArdXl4f4hg",
+            authDomain: "al-huffaz.firebaseapp.com",
+            projectId: "al-huffaz",
+            storageBucket: "al-huffaz.firebasestorage.app",
+            messagingSenderId: "662098083805",
+            appId: "1:662098083805:web:044f12090b256c653d8034"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Core UI Update Function
+        function updateDashboardUI(userXP, totalAyahs, isCloud) {
+            const XP_PER_LEVEL = 500;
+            const level = Math.floor(userXP / XP_PER_LEVEL) + 1;
+            const currentLevelXP = userXP % XP_PER_LEVEL;
+            const progressPercentage = Math.min(100, (currentLevelXP / XP_PER_LEVEL) * 100);
+            const xpNeeded = XP_PER_LEVEL - currentLevelXP;
+
+            document.getElementById('dash-level').innerText = level;
+            document.getElementById('dash-xp').innerText = userXP.toLocaleString();
+            document.getElementById('dash-ayahs').innerText = totalAyahs.toLocaleString();
+            document.getElementById('dash-xp-needed').innerText = `${xpNeeded} XP to Level ${level + 1}`;
+            
+            document.getElementById('sync-status').innerText = isCloud 
+                ? "☁️ Data synced securely from Cloud" 
+                : "⚠️ Playing locally (Not synced to cloud)";
+
+            setTimeout(() => {
+                document.getElementById('dash-progress-bar').style.width = `${progressPercentage}%`;
+            }, 100);
+        }
+
+        // Listen for Authentication State
+        onAuthStateChanged(auth, async (user) => {
+            const logoutBtn = document.getElementById('logout-btn');
+            const greeting = document.getElementById('user-greeting');
+
+            if (user) {
+                // User is logged in! Fetch from Firestore Database
+                logoutBtn.classList.remove('hidden');
+                greeting.innerText = `Welcome back, ${user.displayName || 'Learner'}!`;
+
+                try {
+                    const docRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(docRef);
+
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const xp = data.xp || 0;
+                        const ayahsCount = data.learnedAyahs ? data.learnedAyahs.length : 0;
+                        updateDashboardUI(xp, ayahsCount, true);
+                    } else {
+                        updateDashboardUI(0, 0, true);
+                    }
+                } catch (error) {
+                    console.error("Error fetching data:", error);
+                    document.getElementById('sync-status').innerText = "❌ Error fetching cloud data.";
+                }
+
+            } else {
+                // Not logged in. Fall back to local browser storage
+                logoutBtn.classList.add('hidden');
+                greeting.innerText = "Track your memorization progress and milestones.";
+                
+                let localXP = parseInt(localStorage.getItem('hifz_xp')) || 0;
+                let localAyahs = JSON.parse(localStorage.getItem('hifz_learned_ayahs')) || [];
+                
+                updateDashboardUI(localXP, localAyahs.length, false);
+            }
+        });
+
+        // Handle Log Out
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.reload();
+            });
+        });
+    </script>
+</body>
+</html>
