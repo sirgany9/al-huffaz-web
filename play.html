@@ -95,9 +95,55 @@
 
         </div>
 
-        <button onclick="startGame()" class="mt-2 bg-[#047857] text-white px-10 py-3.5 rounded-xl font-bold text-lg hover:bg-[#065f46] transition shadow-md w-full sm:w-auto">
-            Start Learning
-        </button>
+        <div class="flex items-center gap-3 mt-4 w-full sm:w-auto">
+            <button onclick="startGame()" class="flex-grow sm:flex-initial bg-[#047857] text-white px-10 py-3.5 rounded-xl font-bold text-lg hover:bg-[#065f46] transition shadow-md">
+                Start Learning
+            </button>
+            
+            <button onclick="toggleSettings(true)" class="p-3.5 bg-stone-100 text-stone-500 rounded-xl hover:bg-stone-200 hover:text-stone-700 transition border border-stone-200 shadow-sm" title="Advanced Settings">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
+        </div>
+        
+        <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-stone-200">
+                <div class="p-6 border-b border-stone-100 flex justify-between items-center">
+                    <h3 class="text-xl font-black text-slate-800">Advanced Settings</h3>
+                    <button onclick="toggleSettings(false)" class="text-stone-400 hover:text-stone-600 transition text-2xl">×</button>
+                </div>
+                
+                <div class="p-6 flex flex-col gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">Daily Ayah Goal</label>
+                        <div class="flex items-center gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                            <input type="number" id="daily-goal-input" min="1" value="10" class="w-20 p-2 border border-stone-300 bg-white rounded-lg text-center font-bold focus:border-emerald-500 outline-none">
+                            <span class="text-stone-600 font-medium">Ayahs per day</span>
+                        </div>
+                    </div>
+        
+                    <div>
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">Reciter Voice</label>
+                        <select id="reciter-select" class="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl font-bold focus:border-emerald-500 outline-none cursor-pointer">
+                            <option value="4">Mohamed Al-Minshawi (Mujawwad)</option>
+                            <option value="5">Mohamed Al-Minshawi (Murattal)</option>
+                            <option value="2">AbdulBaset AbdulSamad (Mujawwad)</option>
+                            <option value="1">AbdulBaset AbdulSamad (Murattal)</option>
+                            <option value="7">Mishary Rashid Alafasy</option>
+                            <option value="12">Mahmoud Khalil Al-Husary</option>
+                        </select>
+                    </div>
+                </div>
+        
+                <div class="p-6 bg-stone-50 text-right">
+                    <button onclick="toggleSettings(false)" class="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold hover:bg-slate-900 transition shadow-md">
+                        Save & Close
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -182,6 +228,7 @@
     let isVerseAnswered = false; 
     
     let gameMode = 'practice';
+    let currentReciterId = 4; // Default to Minshawi Mujawwad
     let countdownInterval = null;
     let timeLeft = 0;
 
@@ -277,7 +324,10 @@
         resetResultUI(); 
         document.getElementById('selection-area').classList.add('hidden');
         document.getElementById('game-area').classList.remove('hidden');   
-        
+        // Sync settings from popup
+const goalInput = document.getElementById('daily-goal-input').value;
+currentReciterId = document.getElementById('reciter-select').value;
+localStorage.setItem('hifz_daily_goal', goalInput);
         currentChapterId = document.getElementById('surah-select').value;
         const selectElement = document.getElementById('surah-select');
         const selectedText = selectElement.options[selectElement.selectedIndex].text;
@@ -345,8 +395,8 @@
             
             hiddenWordIndices.sort((a, b) => a - b);
 
-            const audioRes = await fetch(`${API_BASE}/recitations/7/by_ayah/${currentChapterId}:${verseNum}`);
-            const audioData = await audioRes.json();
+// This now uses the 'currentReciterId' you picked in the Settings popup
+const audioRes = await fetch(`${API_BASE}/recitations/${currentReciterId}/by_ayah/${currentChapterId}:${verseNum}`);            const audioData = await audioRes.json();
             const audioUrl = audioData.audio_files[0].url;
             
             const audioEl = document.getElementById('game-audio');
@@ -751,6 +801,14 @@
         document.getElementById('selection-area').classList.remove('hidden');
         document.getElementById('score-display').innerText = "Score: 0";
     }
+    function toggleSettings(show) {
+    const modal = document.getElementById('settings-modal');
+    if (show) {
+        modal.classList.remove('hidden');
+    } else {
+        modal.classList.add('hidden');
+    }
+}
 </script>
 </body>
 </html>

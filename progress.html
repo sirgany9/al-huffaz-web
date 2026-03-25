@@ -133,7 +133,8 @@
             // 2. DAILY PROGRESS (Using a goal of 10 Ayahs per day)
             // Note: Since we don't save timestamps for each Ayah yet,
             // we will simulate progress based on total Ayahs for now.
-            const DAILY_GOAL = 10;
+            // Load custom goal (fallback to 10)
+const DAILY_GOAL = parseInt(localStorage.getItem('hifz_daily_goal')) || 10;
             const dailyCount = totalAyahs % DAILY_GOAL || (totalAyahs > 0 ? DAILY_GOAL : 0);
             const dailyPct = Math.min(100, Math.round((dailyCount / DAILY_GOAL) * 100));
 
