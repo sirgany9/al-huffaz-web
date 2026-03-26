@@ -5,21 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Al-Huffaz | Progress Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; }
+        body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; transition: all 0.3s ease; }
+        .rtl { direction: rtl; font-family: 'Amiri', serif; }
+        .rtl #dash-level, .rtl #daily-pct, .rtl #alltime-pct { font-family: 'Inter', sans-serif; } /* Keep numbers readable */
     </style>
 </head>
-<body class="text-slate-900">
+<body id="main-body" class="text-slate-900 flex flex-col min-h-screen">
 
     <nav class="bg-white border-b border-stone-200 p-4 shadow-sm sticky top-0 z-50">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <a href="index.html" class="text-emerald-700 font-bold flex items-center gap-2 hover:text-emerald-800 transition">
+            <a href="index.html" id="back-home" class="text-emerald-700 font-bold flex items-center gap-2 hover:text-emerald-800 transition">
                 <span>← Back to Home</span>
             </a>
-            <div class="flex gap-3">
+            
+            <div class="flex items-center gap-3">
+                <button onclick="toggleLanguage()" class="bg-stone-100 px-3 py-1.5 rounded-lg font-bold text-xs hover:bg-stone-200 transition border border-stone-200">
+                    <span id="lang-label">العربية</span>
+                </button>
                 <button id="logout-btn" class="hidden text-stone-500 font-bold text-sm hover:text-rose-600 transition px-3">Log Out</button>
-                <a href="play.html" class="bg-emerald-700 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-emerald-800 transition shadow-sm">
+                <a href="play.html" id="continue-learning" class="bg-emerald-700 text-white px-5 py-2 rounded-lg font-bold text-sm hover:bg-emerald-800 transition shadow-sm">
                     Continue Learning
                 </a>
             </div>
@@ -29,8 +35,8 @@
     <div class="max-w-3xl mx-auto px-6 py-12">
         
         <div class="text-center mb-10">
-            <h1 class="text-4xl font-black text-slate-900 mb-3">Your Hifz Journey</h1>
-            <p id="user-greeting" class="text-stone-500 font-medium">Track your memorization progress and milestones.</p>
+            <h1 id="page-title" class="text-4xl font-black text-slate-900 mb-3">Your Hifz Journey</h1>
+            <p id="user-greeting" class="text-stone-500 font-medium">Track your progress and milestones.</p>
         </div>
 
         <div class="bg-white p-8 sm:p-12 rounded-3xl shadow-lg border border-stone-200 text-center relative overflow-hidden">
@@ -38,7 +44,7 @@
             <div class="relative inline-block mb-6 z-10">
                 <svg class="w-32 h-32 text-emerald-500 drop-shadow-md mx-auto" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center pt-2">
-                    <span class="text-white text-sm font-bold uppercase tracking-widest opacity-90">Level</span>
+                    <span id="level-text" class="text-white text-sm font-bold uppercase tracking-widest opacity-90">Level</span>
                     <span id="dash-level" class="text-white text-4xl font-black leading-none mt-1">...</span>
                 </div>
             </div>
@@ -49,32 +55,32 @@
                          style="background: radial-gradient(closest-side, white 85%, transparent 86% 100%), conic-gradient(#10b981 0%, #e5e7eb 0%); transition: background 1s ease-in-out;">
                         <span id="daily-pct" class="text-xl font-black text-slate-700">0%</span>
                     </div>
-                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-3">Daily Goal</p>
+                    <p id="label-daily" class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-3">Daily Goal</p>
                 </div>
                 <div class="flex flex-col items-center">
                     <div id="alltime-wheel" class="relative w-28 h-28 flex items-center justify-center rounded-full shadow-sm" 
                          style="background: radial-gradient(closest-side, white 85%, transparent 86% 100%), conic-gradient(#059669 0%, #e5e7eb 0%); transition: background 1s ease-in-out;">
                         <span id="alltime-pct" class="text-xl font-black text-slate-700">0%</span>
                     </div>
-                    <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-3">Quran Hifz</p>
+                    <p id="label-hifz" class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-3">Quran Hifz</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-6 sm:gap-10 mb-10 border-t border-stone-100 pt-8 z-10 relative">
                 <div>
-                    <div class="text-stone-400 font-bold uppercase tracking-widest text-xs mb-2">Lifetime XP</div>
+                    <div id="label-xp" class="text-stone-400 font-bold uppercase tracking-widest text-xs mb-2">Lifetime XP</div>
                     <div id="dash-xp" class="text-4xl font-black text-emerald-700">...</div>
                 </div>
                 <div>
-                    <div class="text-stone-400 font-bold uppercase tracking-widest text-xs mb-2">Unique Ayahs</div>
+                    <div id="label-ayahs" class="text-stone-400 font-bold uppercase tracking-widest text-xs mb-2">Unique Ayahs</div>
                     <div id="dash-ayahs" class="text-4xl font-black text-emerald-700">...</div>
                 </div>
             </div>
 
             <div class="text-left bg-stone-50 p-6 rounded-2xl border border-stone-200 z-10 relative">
                 <div class="flex justify-between items-end mb-2">
-                    <div class="text-sm font-bold text-stone-600">Progress to Next Level</div>
-                    <div id="dash-xp-needed" class="font-bold text-emerald-600 text-sm">Calculating...</div>
+                    <div id="label-next-level" class="text-sm font-bold text-stone-600">Progress to Next Level</div>
+                    <div id="dash-xp-needed" class="font-bold text-emerald-600 text-sm">...</div>
                 </div>
                 <div class="w-full bg-stone-200 rounded-full h-3 shadow-inner overflow-hidden">
                     <div id="dash-progress-bar" class="bg-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
@@ -84,11 +90,6 @@
             <div id="sync-status" class="mt-6 text-xs font-bold text-stone-400 uppercase tracking-widest z-10 relative">
                 Checking Cloud Sync...
             </div>
-            
-            <div class="absolute -top-10 -right-10 text-emerald-50 opacity-50 w-80 h-80 pointer-events-none z-0">
-                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
-            </div>
-
         </div>
     </div>
 
@@ -97,7 +98,6 @@
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        // 1. Firebase Configuration (Matches your provided screenshot keys)
         const firebaseConfig = {
             apiKey: "AIzaSyCaW7DUhp7pufEbCjOWNIr0kArdXl4f4hg",
             authDomain: "al-huffaz.firebaseapp.com",
@@ -107,67 +107,99 @@
             appId: "1:662098083805:web:044f12090b256c653d8034"
         };
 
-        // 2. Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Core UI Update Function
-        function updateDashboardUI(userXP, totalAyahs, isCloud) {
+        // --- Multi-Language Support ---
+        const translations = {
+            en: { 
+                back: "← Back to Home", continue: "Continue Learning", logout: "Log Out",
+                title: "Your Hifz Journey", greeting: "Track your progress and milestones.",
+                level: "Level", daily: "Daily Goal", hifz: "Quran Hifz", xp: "Lifetime XP",
+                ayahs: "Unique Ayahs", next: "Progress to Next Level", needed: "XP to Level",
+                syncOk: "Data synced securely from Cloud", syncLocal: "Playing locally (Not synced)", lang: "العربية"
+            },
+            ar: { 
+                back: "العودة للرئيسية →", continue: "استمرار التعلم", logout: "تسجيل الخروج",
+                title: "رحلتك في الحفظ", greeting: "تابع تقدمك وإنجازاتك في حفظ القرآن.",
+                level: "المستوى", daily: "الهدف اليومي", hifz: "حفظ القرآن", xp: "نقاط الخبرة",
+                ayahs: "الآيات المحفوظة", next: "التقدم للمستوى التالي", needed: "نقطة للمستوى",
+                syncOk: "تم مزامنة البيانات من السحابة", syncLocal: "اللعب محلياً (غير مزامن)", lang: "English"
+            }
+        };
+
+        window.applyLanguage = function(lang) {
+            const t = translations[lang];
+            document.getElementById('main-body').className = lang === 'ar' ? 'text-slate-900 flex flex-col min-h-screen rtl' : 'text-slate-900 flex flex-col min-h-screen';
+            document.getElementById('back-home').innerText = t.back;
+            document.getElementById('continue-learning').innerText = t.continue;
+            document.getElementById('logout-btn').innerText = t.logout;
+            document.getElementById('page-title').innerText = t.title;
+            document.getElementById('level-text').innerText = t.level;
+            document.getElementById('label-daily').innerText = t.daily;
+            document.getElementById('label-hifz').innerText = t.hifz;
+            document.getElementById('label-xp').innerText = t.xp;
+            document.getElementById('label-ayahs').innerText = t.ayahs;
+            document.getElementById('label-next-level').innerText = t.next;
+            document.getElementById('lang-label').innerText = t.lang;
+        };
+
+        window.toggleLanguage = function() {
+            const newLang = localStorage.getItem('huffaz_lang') === 'ar' ? 'en' : 'ar';
+            localStorage.setItem('huffaz_lang', newLang);
+            applyLanguage(newLang);
+            location.reload(); // Reload to refresh data logic
+        };
+
+        const currentLang = localStorage.getItem('huffaz_lang') || 'en';
+        applyLanguage(currentLang);
+
+        // --- Core UI Update Function ---
+        function updateDashboardUI(userXP, ayahsArray, isCloud, cloudDailyCount = 0) {
             const XP_PER_LEVEL = 500;
             const level = Math.floor(userXP / XP_PER_LEVEL) + 1;
             const currentLevelXP = userXP % XP_PER_LEVEL;
             const progressPercentage = Math.min(100, (currentLevelXP / XP_PER_LEVEL) * 100);
             const xpNeeded = XP_PER_LEVEL - currentLevelXP;
+            const totalAyahs = ayahsArray.length;
 
-            // Update text stats
             document.getElementById('dash-level').innerText = level;
             document.getElementById('dash-xp').innerText = userXP.toLocaleString();
             document.getElementById('dash-ayahs').innerText = totalAyahs.toLocaleString();
-            document.getElementById('dash-xp-needed').innerText = `${xpNeeded} XP to Level ${level + 1}`;
             
-            // 1. ALL-TIME PROGRESS (learned / 6236 total Quran ayahs)
-            const TOTAL_QURAN_AYAHS = 6236;
-            const allTimePct = Math.min(100, Math.round((totalAyahs / TOTAL_QURAN_AYAHS) * 100));
+            const neededText = translations[currentLang].needed;
+            document.getElementById('dash-xp-needed').innerText = `${xpNeeded} ${neededText} ${level + 1}`;
             
-            // 2. DAILY PROGRESS (Using a goal of 10 Ayahs per day)
-            // Note: Since we don't save timestamps for each Ayah yet,
-            // we will simulate progress based on total Ayahs for now.
-            // Load custom goal (fallback to 10)
-const DAILY_GOAL = parseInt(localStorage.getItem('hifz_daily_goal')) || 10;
-            const dailyCount = totalAyahs % DAILY_GOAL || (totalAyahs > 0 ? DAILY_GOAL : 0);
-            const dailyPct = Math.min(100, Math.round((dailyCount / DAILY_GOAL) * 100));
+            // Wheels
+            const DAILY_GOAL = parseInt(localStorage.getItem('hifz_daily_goal')) || 10;
+            const allTimePct = Math.min(100, Math.round((totalAyahs / 6236) * 100));
+            
+            // Logic: Use real cloud count if available, otherwise estimate from local data
+            const currentDaily = isCloud ? cloudDailyCount : (totalAyahs % DAILY_GOAL || (totalAyahs > 0 ? DAILY_GOAL : 0));
+            const dailyPct = Math.min(100, Math.round((currentDaily / DAILY_GOAL) * 100));
 
-            // Update Wheel Text
             document.getElementById('daily-pct').innerText = `${dailyPct}%`;
             document.getElementById('alltime-pct').innerText = `${allTimePct}%`;
 
-            // Update Wheel Visuals (using conic-gradient)
             document.getElementById('daily-wheel').style.background = `radial-gradient(closest-side, white 85%, transparent 86% 100%), conic-gradient(#10b981 ${dailyPct}%, #e5e7eb 0%)`;
             document.getElementById('alltime-wheel').style.background = `radial-gradient(closest-side, white 85%, transparent 86% 100%), conic-gradient(#059669 ${allTimePct}%, #e5e7eb 0%)`;
             
-            // Update Sync Status
-            document.getElementById('sync-status').innerText = isCloud 
-                ? "☁️ Data synced securely from Cloud" 
-                : "⚠️ Playing locally (Not synced to cloud)";
+            document.getElementById('sync-status').innerText = isCloud ? `☁️ ${translations[currentLang].syncOk}` : `⚠️ ${translations[currentLang].syncLocal}`;
 
-            // Update progress bar
             setTimeout(() => {
-                const progressBar = document.getElementById('dash-progress-bar');
-                if (progressBar) progressBar.style.width = `${progressPercentage}%`;
+                document.getElementById('dash-progress-bar').style.width = `${progressPercentage}%`;
             }, 100);
         }
 
-        // Listen for Authentication State
+        // --- Auth Listener (Cloud Sync) ---
         onAuthStateChanged(auth, async (user) => {
             const logoutBtn = document.getElementById('logout-btn');
             const greeting = document.getElementById('user-greeting');
-            const syncStatus = document.getElementById('sync-status');
 
             if (user) {
-                // User is logged in! Fetch from Firestore Database
                 logoutBtn.classList.remove('hidden');
-                greeting.innerText = `Welcome back, ${user.displayName || 'Learner'}!`;
+                greeting.innerText = (currentLang === 'ar' ? 'أهلاً بك، ' : 'Welcome back, ') + (user.displayName || 'Learner') + '!';
 
                 try {
                     const docRef = doc(db, "users", user.uid);
@@ -175,35 +207,26 @@ const DAILY_GOAL = parseInt(localStorage.getItem('hifz_daily_goal')) || 10;
 
                     if (docSnap.exists()) {
                         const data = docSnap.data();
-                        const xp = data.xp || 0;
-                        const ayahsCount = data.learnedAyahs ? data.learnedAyahs.length : 0;
-                        updateDashboardUI(xp, ayahsCount, true);
+                        const today = new Date().toISOString().split('T')[0];
+                        const dailyCount = (data.lastActivityDate === today) ? (data.dailyCount || 0) : 0;
+                        updateDashboardUI(data.xp || 0, data.learnedAyahs || [], true, dailyCount);
                     } else {
-                        // User exists in auth but has no document in the database yet
-                        updateDashboardUI(0, 0, true);
+                        updateDashboardUI(0, [], true, 0);
                     }
                 } catch (error) {
-                    console.error("Error fetching data:", error);
-                    syncStatus.innerText = "❌ Error fetching cloud data.";
+                    console.error(error);
+                    document.getElementById('sync-status').innerText = "❌ Connection Error";
                 }
-
             } else {
-                // Not logged in. Fall back to local browser storage
                 logoutBtn.classList.add('hidden');
-                greeting.innerText = "Track your memorization progress and milestones.";
-                
                 let localXP = parseInt(localStorage.getItem('hifz_xp')) || 0;
                 let localAyahs = JSON.parse(localStorage.getItem('hifz_learned_ayahs')) || [];
-                
-                updateDashboardUI(localXP, localAyahs.length, false);
+                updateDashboardUI(localXP, localAyahs, false, 0);
             }
         });
 
-        // Handle Log Out
         document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth).then(() => {
-                window.location.reload();
-            });
+            signOut(auth).then(() => window.location.reload());
         });
     </script>
 </body>

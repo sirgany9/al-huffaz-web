@@ -31,8 +31,11 @@
                     <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Email Address</label>
                     <input type="email" id="email" required class="w-full p-4 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition font-medium">
                 </div>
+                
                 <div>
-                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Password</label>
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest">Password</label>
+                    </div>
                     <input type="password" id="password" required class="w-full p-4 bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition font-medium">
                 </div>
                 
@@ -51,15 +54,43 @@
         </div>
     </div>
 
-    <script>
-        // We will add the Firebase Authentication logic here in the next phase!
-        document.getElementById('login-form').addEventListener('submit', function(e) {
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCaW7DUhp7pufEbCjOWNIr0kArdXl4f4hg",
+            authDomain: "al-huffaz.firebaseapp.com",
+            projectId: "al-huffaz",
+            storageBucket: "al-huffaz.firebasestorage.app",
+            messagingSenderId: "662098083805",
+            appId: "1:662098083805:web:044f12090b256c653d8034"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             const btn = document.getElementById('login-btn');
+            const errorBox = document.getElementById('error-message');
+
             btn.innerHTML = 'Signing in...';
             btn.classList.add('opacity-75', 'cursor-not-allowed');
-            // Mock delay to show you how it will look
-            setTimeout(() => { alert("Firebase logic will go here!"); btn.innerHTML = 'Sign In'; btn.classList.remove('opacity-75', 'cursor-not-allowed'); }, 1000);
+            errorBox.classList.add('hidden');
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                window.location.href = "progress.html";
+            } catch (error) {
+                btn.innerHTML = 'Sign In';
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                errorBox.innerText = error.message.replace("Firebase: ", "");
+                errorBox.classList.remove('hidden');
+            }
         });
     </script>
 </body>
