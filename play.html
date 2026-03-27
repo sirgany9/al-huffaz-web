@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" id="main-html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -132,13 +132,13 @@
 <body class="text-slate-900">
 
     <nav class="bg-white border-b border-stone-200 p-4 flex justify-between items-center shadow-sm sticky top-0 z-50">
-        <a href="index.html" class="text-emerald-700 font-bold flex items-center gap-2 hover:text-emerald-800 transition">
+        <a href="index.html" id="nav-back" class="text-emerald-700 font-bold flex items-center gap-2 hover:text-emerald-800 transition">
             <span>← Back to Home</span>
         </a>
 
         <div class="flex items-center gap-4 sm:gap-8">
             <div class="hidden sm:block text-right">
-                <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Unique Ayahs Learned</div>
+                <div id="nav-ayahs-label" class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Unique Ayahs Learned</div>
                 <div id="ayahs-learned-display" class="font-black text-stone-700 text-xl leading-none mt-1">0</div>
             </div>
 
@@ -149,7 +149,7 @@
                 </div>
                 <div class="flex-1">
                     <div class="flex justify-between items-end mb-1">
-                        <div class="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Lifetime XP</div>
+                        <div id="nav-xp-label" class="text-[10px] font-bold text-stone-500 uppercase tracking-widest">Lifetime XP</div>
                         <div id="xp-display" class="font-bold text-emerald-700 text-xs">0 XP</div>
                     </div>
                     <div class="w-full bg-stone-200 rounded-full h-2 shadow-inner overflow-hidden">
@@ -163,44 +163,44 @@
     <div class="max-w-4xl mx-auto px-6 py-10">
         
         <div id="selection-area" class="bg-white p-8 rounded-2xl shadow-sm border border-stone-200 mb-8 text-center max-w-4xl mx-auto">
-            <h2 class="text-xl font-bold mb-6 text-slate-800">Step 1: Choose a Surah, Range & Difficulty</h2>
+            <h2 id="step1-title" class="text-xl font-bold mb-6 text-slate-800">Step 1: Choose a Surah, Range & Difficulty</h2>
             
             <div class="flex flex-col items-center gap-6">
                 <select id="surah-select" onchange="updateAyahRange()" class="w-full sm:w-[400px] p-3 border border-stone-300 rounded-xl focus:outline-none focus:border-emerald-500 font-bold text-lg text-center cursor-pointer hover:bg-stone-50 transition">
-                    <option value="">Fetching 114 Surahs...</option>
+                    <option value="" id="surah-loading-text">Fetching 114 Surahs...</option>
                 </select>
 
                 <div class="flex flex-wrap items-center justify-center gap-4 w-full">
                     <div class="flex items-center gap-3 bg-stone-50 px-5 py-3 rounded-xl border border-stone-200">
-                        <label class="font-bold text-stone-500 text-xs uppercase tracking-wider">From</label>
+                        <label id="label-from" class="font-bold text-stone-500 text-xs uppercase tracking-wider">From</label>
                         <input type="number" id="start-ayah" min="1" value="1" class="w-16 p-2 border border-stone-300 bg-white rounded-lg text-center font-bold focus:border-emerald-500 outline-none">
                         <span class="text-stone-300 font-bold">—</span>
-                        <label class="font-bold text-stone-500 text-xs uppercase tracking-wider">To</label>
+                        <label id="label-to" class="font-bold text-stone-500 text-xs uppercase tracking-wider">To</label>
                         <input type="number" id="end-ayah" min="1" value="7" class="w-16 p-2 border border-stone-300 bg-white rounded-lg text-center font-bold focus:border-emerald-500 outline-none">
                     </div>
 
                     <div class="flex items-center gap-3 bg-stone-50 px-5 py-3 rounded-xl border border-stone-200">
-                        <label class="font-bold text-stone-500 text-xs uppercase tracking-wider">Mode</label>
+                        <label id="label-mode" class="font-bold text-stone-500 text-xs uppercase tracking-wider">Mode</label>
                         <select id="game-mode" class="p-2 border border-stone-300 bg-white rounded-lg font-bold outline-none cursor-pointer">
-                            <option value="practice">Practice (No Limit)</option>
-                            <option value="advanced">Advanced (Timed)</option>
+                            <option value="practice" id="opt-practice">Practice (No Limit)</option>
+                            <option value="advanced" id="opt-advanced">Advanced (Timed)</option>
                         </select>
                     </div>
 
                     <div class="flex items-center gap-3 bg-stone-50 px-5 py-3 rounded-xl border border-stone-200">
-                        <label class="font-bold text-stone-500 text-xs uppercase tracking-wider">Difficulty</label>
+                        <label id="label-diff" class="font-bold text-stone-500 text-xs uppercase tracking-wider">Difficulty</label>
                         <select id="difficulty-level" class="p-2 border border-stone-300 bg-white rounded-lg font-bold outline-none cursor-pointer">
-                            <option value="10">Beginner (10% MC)</option>
-                            <option value="25">Intermediate (25% MC)</option>
-                            <option value="50">Advanced (50% MC)</option>
-                            <option value="100">Expert (100% MC)</option>
-                            <option value="typing">Master (Typing)</option>
+                            <option value="10" id="diff-10">Beginner (10% MC)</option>
+                            <option value="25" id="diff-25">Intermediate (25% MC)</option>
+                            <option value="50" id="diff-50">Advanced (50% MC)</option>
+                            <option value="100" id="diff-100">Expert (100% MC)</option>
+                            <option value="typing" id="diff-typing">Master (Typing)</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-3 mt-4 w-full sm:w-auto">
-                    <button onclick="startGame()" class="flex-grow sm:flex-initial bg-[#047857] text-white px-10 py-3.5 rounded-xl font-bold text-lg hover:bg-[#065f46] transition shadow-md">
+                    <button onclick="startGame()" id="btn-start" class="flex-grow sm:flex-initial bg-[#047857] text-white px-10 py-3.5 rounded-xl font-bold text-lg hover:bg-[#065f46] transition shadow-md">
                         Start Practice
                     </button>
                     
@@ -212,30 +212,30 @@
                 <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
                     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-stone-200 text-left">
                         <div class="p-6 border-b border-stone-100 flex justify-between items-center">
-                            <h3 class="text-xl font-black text-slate-800">Advanced Settings</h3>
+                            <h3 id="set-title" class="text-xl font-black text-slate-800">Advanced Settings</h3>
                             <button onclick="toggleSettings(false)" class="text-stone-400 hover:text-stone-600 transition text-2xl">×</button>
                         </div>
                         <div class="p-6 flex flex-col gap-6">
                             <div>
-                                <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">Daily Ayah Goal</label>
+                                <label id="set-goal" class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">Daily Ayah Goal</label>
                                 <div class="flex items-center gap-4 bg-stone-50 p-4 rounded-2xl border border-stone-100">
                                     <input type="number" id="daily-goal-input" min="1" value="10" class="w-20 p-2 border border-stone-300 bg-white rounded-lg text-center font-bold outline-none">
-                                    <span class="text-stone-600 font-medium">Ayahs per day</span>
+                                    <span id="set-ayahs-day" class="text-stone-600 font-medium">Ayahs per day</span>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">Reciter Voice</label>
+                                <label id="set-reciter" class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-3">Reciter Voice</label>
                                 <select id="reciter-select" class="w-full p-4 bg-stone-50 border border-stone-200 rounded-2xl font-bold outline-none cursor-pointer">
-                                    <option value="9">Mohamed Siddiq al-Minshawi (Murattal)</option>
-                                    <option value="8">Mohamed Siddiq al-Minshawi (Mujawwad)</option>
-                                    <option value="7">Mishary Rashid Alafasy</option>
-                                    <option value="6">Mahmoud Khalil Al-Husary (Murattal)</option>
-                                    <option value="12">Mahmoud Khalil Al-Husary (Muallim)</option>
+                                    <option value="9" id="rec-minsh-m">Mohamed Siddiq al-Minshawi (Murattal)</option>
+                                    <option value="8" id="rec-minsh-j">Mohamed Siddiq al-Minshawi (Mujawwad)</option>
+                                    <option value="7" id="rec-alaf">Mishary Rashid Alafasy</option>
+                                    <option value="6" id="rec-husr-m">Mahmoud Khalil Al-Husary (Murattal)</option>
+                                    <option value="12" id="rec-husr-mu">Mahmoud Khalil Al-Husary (Muallim)</option>
                                 </select>
                             </div>
                         </div>
                         <div class="p-6 bg-stone-50 text-right">
-                            <button onclick="saveSettingsAndClose()" class="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold hover:bg-slate-900 shadow-md transition">Save & Close</button>
+                            <button onclick="saveSettingsAndClose()" id="set-save" class="bg-slate-800 text-white px-6 py-2 rounded-xl font-bold hover:bg-slate-900 shadow-md transition">Save & Close</button>
                         </div>
                     </div>
                 </div>
@@ -256,7 +256,7 @@
                 <div class="flex items-center gap-3">
                     <span id="timer-display" class="hidden text-rose-500 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200 shadow-sm animate-pulse">⏱ 20s</span>
                     <span id="mistakes-display" class="hidden text-rose-600 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-200 shadow-sm">Mistakes: 0</span>
-                    <button onclick="showFinalResult()" class="text-xs bg-red-50 text-red-500 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition">End Early</button>
+                    <button onclick="showFinalResult()" id="btn-end" class="text-xs bg-red-50 text-red-500 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition shadow-sm">End Early</button>
                 </div>
             </div>
 
@@ -269,7 +269,7 @@
             <div id="controls-area" class="text-center">
                 <div id="audio-controls" class="flex flex-wrap justify-center gap-4 hidden mb-6">
                     <button id="play-pause-btn" onclick="togglePlayPause()" class="bg-stone-800 text-white px-8 py-3 rounded-xl font-bold hover:bg-stone-900 shadow-md w-32">▶ Play</button>
-                    <button onclick="replayAudio()" class="bg-white border-2 border-stone-200 text-stone-700 px-8 py-3 rounded-xl font-bold hover:bg-stone-50 transition shadow-sm">↺ Replay</button>
+                    <button id="btn-replay" onclick="replayAudio()" class="bg-white border-2 border-stone-200 text-stone-700 px-8 py-3 rounded-xl font-bold hover:bg-stone-50 transition shadow-sm">↺ Replay</button>
                     <button id="next-btn" onclick="forceNextVerse()" class="bg-emerald-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-md">Next Ayah ⏭</button>
                 </div>
 
@@ -288,10 +288,10 @@
 
         <div id="result-area" class="hidden bg-white p-12 rounded-2xl shadow-2xl border border-stone-200 text-center mt-10">
             <div id="result-icon" class="text-6xl mb-6">🏆</div>
-            <h2 id="result-title" class="text-4xl font-bold text-emerald-700 mb-4">Practice Complete!</h2>
-            <p id="result-subtitle" class="text-xl font-bold text-stone-500 mb-2">Final Score:</p>
+            <h2 id="res-complete" class="text-4xl font-bold text-emerald-700 mb-4">Practice Complete!</h2>
+            <p id="res-subtitle" class="text-xl font-bold text-stone-500 mb-2">Final Score:</p>
             <p class="text-4xl font-black text-slate-900 mb-10"><span id="final-score-display" class="text-emerald-600">0</span></p>
-            <button onclick="resetToSelection()" class="bg-emerald-700 text-white px-10 py-4 rounded-xl font-bold text-xl hover:bg-emerald-800 transition shadow-lg">Continue Learning</button>
+            <button onclick="resetToSelection()" id="res-continue" class="bg-emerald-700 text-white px-10 py-4 rounded-xl font-bold text-xl hover:bg-emerald-800 shadow-lg transition">Continue Learning</button>
         </div>
     </div>
 
@@ -305,11 +305,13 @@
         let startVerseNum = 1;
         let endVerseNum = 7;
         let hiddenPercentage = 10; 
+        
         let wordsData = [];
         let timeSegments = [];
         let hiddenWordIndices = [];
         let currentBlankStep = 0;
         let currentTypedWord = ""; 
+        
         let score = 0;
         let totalMistakes = 0;
         let isVerseAnswered = false;
@@ -322,24 +324,91 @@
         // --- LOCAL STORAGE DATA ---
         let userXP = parseInt(localStorage.getItem('hifz_xp')) || 0;
         let learnedAyahsList = JSON.parse(localStorage.getItem('hifz_learned_ayahs')) || [];
-        
+        const currentLang = localStorage.getItem('hifz_lang') || 'en';
+
+        // --- DUAL LANGUAGE DICTIONARY ---
+        const t = {
+            en: {
+                dir: 'ltr', back: '← Back to Home', ayahs: 'Unique Ayahs Learned', xp: 'Lifetime XP',
+                step1: 'Step 1: Choose a Surah, Range & Difficulty', loading: 'Fetching 114 Surahs...',
+                from: 'From', to: 'To', mode: 'Mode', diff: 'Difficulty', start: 'Start Practice',
+                p: 'Practice (No Limit)', a: 'Advanced (Timed)', d10: 'Beginner (10% MC)', d25: 'Intermediate (25% MC)', d50: 'Advanced (50% MC)', d100: 'Expert (100% MC)', dTyping: 'Master (Typing)',
+                setTitle: 'Advanced Settings', setGoal: 'Daily Ayah Goal', setDay: 'Ayahs per day', setRec: 'Reciter Voice', setSave: 'Save & Close',
+                rec1: 'Mohamed Siddiq al-Minshawi (Murattal)', rec2: 'Mohamed Siddiq al-Minshawi (Mujawwad)', rec3: 'Mishary Rashid Alafasy', rec4: 'Mahmoud Khalil Al-Husary (Murattal)', rec5: 'Mahmoud Khalil Al-Husary (Muallim)',
+                surah: 'Surah', ayah: 'Ayah', endEarly: 'End Early', loadingAyah: 'Loading Ayah...', play: '▶ Play', pause: '⏸ Pause', replay: '↺ Replay', next: 'Next Ayah ⏭', m1: 'Method 1: Choice', m2: 'Method 2: Typing',
+                resComplete: 'Practice Complete!', resSubtitle: 'Final Score:', resCont: 'Continue Learning'
+            },
+            ar: {
+                dir: 'rtl', back: '← العودة للرئيسية', ayahs: 'الآيات المحفوظة', xp: 'إجمالي النقاط',
+                step1: 'الخطوة 1: اختر السورة، المدى والصعوبة', loading: 'جاري تحميل السور...',
+                from: 'من', to: 'إلى', mode: 'الوضع', diff: 'الصعوبة', start: 'ابدأ المراجعة',
+                p: 'ممارسة (بدون وقت)', a: 'متقدم (بوقت)', d10: 'مبتدئ (10%)', d25: 'متوسط (25%)', d50: 'متقدم (50%)', d100: 'خبير (100%)', dTyping: 'متقن (كتابة)',
+                setTitle: 'إعدادات متقدمة', setGoal: 'هدف الآيات اليومي', setDay: 'آية يومياً', setRec: 'صوت القارئ', setSave: 'حفظ وإغلاق',
+                rec1: 'محمد صديق المنشاوي (مرتل)', rec2: 'محمد صديق المنشاوي (مجود)', rec3: 'مشاري راشد العفاسي', rec4: 'محمود خليل الحصري (مرتل)', rec5: 'محمود خليل الحصري (معلم)',
+                surah: 'السورة', ayah: 'آية', endEarly: 'إنهاء مبكر', loadingAyah: 'جاري تحميل الآية...', play: '▶ تشغيل', pause: '⏸ إيقاف', replay: '↺ إعادة', next: 'الآية التالية ⏭', m1: 'الطريقة 1: خيارات', m2: 'الطريقة 2: كتابة',
+                resComplete: 'اكتملت المراجعة!', resSubtitle: 'النتيجة النهائية:', resCont: 'استمرار التعلم'
+            }
+        };
+
         const arabicLayout = [
             ['ذ', 'ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'د'],
             ['ش', 'س', 'ي', 'ب', 'ل', 'ا', 'ت', 'ن', 'م', 'ك', 'ط'],
             ['ئ', 'ء', 'ؤ', 'ر', 'ى', 'ة', 'و', 'ز', 'ظ']
         ];
 
+        // Apply translations based on choice from index page
+        function applyLanguage() {
+            const l = t[currentLang];
+            document.getElementById('main-html').dir = l.dir;
+            document.getElementById('nav-back').innerHTML = `<span>${l.back}</span>`;
+            document.getElementById('nav-ayahs-label').innerText = l.ayahs;
+            document.getElementById('nav-xp-label').innerText = l.xp;
+            document.getElementById('step1-title').innerText = l.step1;
+            document.getElementById('surah-loading-text').innerText = l.loading;
+            document.getElementById('label-from').innerText = l.from;
+            document.getElementById('label-to').innerText = l.to;
+            document.getElementById('label-mode').innerText = l.mode;
+            document.getElementById('label-diff').innerText = l.diff;
+            document.getElementById('opt-practice').innerText = l.p;
+            document.getElementById('opt-advanced').innerText = l.a;
+            document.getElementById('diff-10').innerText = l.d10;
+            document.getElementById('diff-25').innerText = l.d25;
+            document.getElementById('diff-50').innerText = l.d50;
+            document.getElementById('diff-100').innerText = l.d100;
+            document.getElementById('diff-typing').innerText = l.dTyping;
+            document.getElementById('btn-start').innerText = l.start;
+            document.getElementById('set-title').innerText = l.setTitle;
+            document.getElementById('set-goal').innerText = l.setGoal;
+            document.getElementById('set-ayahs-day').innerText = l.setDay;
+            document.getElementById('set-reciter').innerText = l.setRec;
+            document.getElementById('rec-minsh-m').innerText = l.rec1;
+            document.getElementById('rec-minsh-j').innerText = l.rec2;
+            document.getElementById('rec-alaf').innerText = l.rec3;
+            document.getElementById('rec-husr-m').innerText = l.rec4;
+            document.getElementById('rec-husr-mu').innerText = l.rec5;
+            document.getElementById('set-save').innerText = l.setSave;
+            document.getElementById('btn-end').innerText = l.endEarly;
+            document.getElementById('loading-text').innerText = l.loadingAyah;
+            document.getElementById('play-pause-btn').innerText = l.play;
+            document.getElementById('btn-replay').innerText = l.replay;
+            document.getElementById('next-btn').innerText = l.next;
+            document.getElementById('method-choice-btn').innerText = l.m1;
+            document.getElementById('method-type-btn').innerText = l.m2;
+            document.getElementById('res-complete').innerText = l.resComplete;
+            document.getElementById('res-subtitle').innerText = l.resSubtitle;
+            document.getElementById('res-continue').innerText = l.resCont;
+        }
+
         // --- 1. INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // Restore settings
+            applyLanguage();
             const savedGoal = localStorage.getItem('hifz_daily_goal') || 10;
             document.getElementById('daily-goal-input').value = savedGoal;
             
             updateProfileUI(); 
 
-            // Fetch Chapters from Quran.com API
             try {
-                const response = await fetch(`${API_BASE}/chapters?language=en`);
+                const response = await fetch(`${API_BASE}/chapters?language=${currentLang}`);
                 const data = await response.json();
                 allChapters = data.chapters; 
                 const selectElement = document.getElementById('surah-select');
@@ -355,19 +424,16 @@
                 console.error("API Error (Chapters):", e); 
             }
 
-            // LISTEN FOR PHYSICAL KEYBOARD
             window.addEventListener('keydown', (e) => {
                 if (document.getElementById('game-area').classList.contains('hidden')) return;
                 if (activeInputMethod !== 'type') return;
-                
-                // Allow only Arabic characters to trigger the type handler
                 if (/^[\u0621-\u064A\u0671]$/.test(e.key)) {
                     handleKeyType(e.key);
                 }
             });
         });
 
-        // --- 2. SETTINGS HANDLING ---
+        // --- 2. SETTINGS ---
         function toggleSettings(show) { 
             document.getElementById('settings-modal').classList.toggle('hidden', !show); 
         }
@@ -382,12 +448,10 @@
         function updateProfileUI() {
             const level = Math.floor(userXP / 500) + 1;
             const progress = Math.min(100, ((userXP % 500) / 500) * 100);
-            
             document.getElementById('level-display').innerText = level;
             document.getElementById('xp-display').innerText = `${userXP} XP`;
             document.getElementById('ayahs-learned-display').innerText = learnedAyahsList.length; 
             document.getElementById('xp-progress-bar').style.width = `${progress}%`;
-            
             localStorage.setItem('hifz_xp', userXP);
         }
 
@@ -410,50 +474,36 @@
             activeInputMethod = method;
             const cBtn = document.getElementById('method-choice-btn');
             const tBtn = document.getElementById('method-type-btn');
-            
             const activeClass = "border-emerald-600 bg-emerald-600 text-white shadow-sm";
             const inactiveClass = "border-stone-200 text-stone-400";
-            
             cBtn.className = `text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-lg border-2 transition ${method === 'choice' ? activeClass : inactiveClass}`;
             tBtn.className = `text-[10px] font-bold uppercase tracking-widest px-4 py-2 rounded-lg border-2 transition ${method === 'type' ? activeClass : inactiveClass}`;
-            
             generateQuiz();
         }
 
-        // --- 4. GAMEPLAY LOGIC ---
+        // --- 4. CORE GAMEPLAY ---
         function startGame() {
             startVerseNum = parseInt(document.getElementById('start-ayah').value);
             endVerseNum = parseInt(document.getElementById('end-ayah').value);
-            
             if (startVerseNum > endVerseNum) {
-                return alert("'From' cannot be greater than 'To'.");
+                return alert(currentLang === 'ar' ? "من لا يمكن أن يكون أكبر من إلى." : "From cannot be greater than To.");
             }
-
             gameMode = document.getElementById('game-mode').value;
             const surahSelect = document.getElementById('surah-select');
             const selectedText = surahSelect.options[surahSelect.selectedIndex].text;
-            
-            // Set Surah Name in Header
             document.getElementById('surah-name-display').innerText = selectedText.split('. ')[1].split(' - ')[0];
-
             const diffLevel = document.getElementById('difficulty-level').value;
-            const isMasterTyping = (diffLevel === 'typing');
-            
-            hiddenPercentage = isMasterTyping ? 100 : parseInt(diffLevel);
-            activeInputMethod = isMasterTyping ? 'type' : 'choice';
-            
+            const isMaster = (diffLevel === 'typing');
+            hiddenPercentage = isMaster ? 100 : parseInt(diffLevel);
+            activeInputMethod = isMaster ? 'type' : 'choice';
             switchMethod(activeInputMethod);
-
             score = 0;
             totalMistakes = 0;
-            
             document.getElementById('selection-area').classList.add('hidden');
             document.getElementById('game-area').classList.remove('hidden');   
-            
             currentReciterId = document.getElementById('reciter-select').value;
             currentChapterId = surahSelect.value;
             currentVerseNum = startVerseNum; 
-            
             updateSessionProgress();
             loadVerse(currentVerseNum);
         }
@@ -465,36 +515,22 @@
             document.getElementById('audio-controls').classList.add('hidden');
             document.getElementById('quiz-area').classList.add('hidden');
             document.getElementById('timer-display').classList.add('hidden');
-            
-            // Update Header Counter
-            document.getElementById('verse-progress-display').innerHTML = `Ayah ${num} / ${endVerseNum}`;
-            
+            document.getElementById('verse-progress-display').innerHTML = `${t[currentLang].ayah} ${num} / ${endVerseNum}`;
             isVerseAnswered = false; 
             currentBlankStep = 0; 
             currentTypedWord = "";
-
             try {
-                // Get Verse Words
-                const textRes = await fetch(`${API_BASE}/verses/by_key/${currentChapterId}:${num}?language=en&words=true&word_fields=text_uthmani`);
+                const textRes = await fetch(`${API_BASE}/verses/by_key/${currentChapterId}:${num}?language=${currentLang}&words=true&word_fields=text_uthmani`);
                 const textData = await textRes.json();
                 wordsData = textData.verse.words; 
-                
-                // Determine which words to hide
                 const valid = wordsData.reduce((acc, w, i) => (w.char_type_name === 'word' ? [...acc, i] : acc), []);
                 const hideCount = Math.max(1, Math.ceil((hiddenPercentage / 100) * valid.length));
                 hiddenWordIndices = valid.sort(() => Math.random() - 0.5).slice(0, hideCount).sort((a, b) => a - b);
-                
-                // Get Audio Files
                 const audioRes = await fetch(`${API_BASE}/recitations/${currentReciterId}/by_ayah/${currentChapterId}:${num}`);            
                 const audioData = await audioRes.json();
-                
                 const audioEl = document.getElementById('game-audio');
                 audioEl.src = "https://verses.quran.com/" + audioData.audio_files[0].url;
-                
-                audioEl.onended = () => { 
-                    if (isVerseAnswered) forceNextVerse(); 
-                };
-                
+                audioEl.onended = () => { if (isVerseAnswered) forceNextVerse(); };
                 audioEl.onloadedmetadata = () => {
                     timeSegments = audioData.audio_files[0].segments || [];
                     document.getElementById('loading-text').classList.add('hidden');
@@ -514,14 +550,13 @@
             timeLeft = 20;
             const timerDisplay = document.getElementById('timer-display');
             timerDisplay.classList.remove('hidden');
-            timerDisplay.innerText = `⏱ ${timeLeft}s`;
-            
+            timerDisplay.innerText = `⏱ ${timeLeft}${currentLang === 'ar' ? 'ث' : 's'}`;
             timerInterval = setInterval(() => {
                 timeLeft--;
-                timerDisplay.innerText = `⏱ ${timeLeft}s`;
+                timerDisplay.innerText = `⏱ ${timeLeft}${currentLang === 'ar' ? 'ث' : 's'}`;
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    alert("Time's up!");
+                    alert(currentLang === 'ar' ? "انتهى الوقت!" : "Time's up!");
                     showFinalResult();
                 }
             }, 1000);
@@ -530,36 +565,23 @@
         function renderVerse() {
             const display = document.getElementById('verse-display');
             display.innerHTML = wordsData.map((w, i) => {
-                // If it's a hidden word blank
-                if (hiddenWordIndices.includes(i)) {
-                    return `<span id="word-${w.position}" class="hidden-word">____</span>`;
-                }
-                
+                if (hiddenWordIndices.includes(i)) return `<span id="word-${w.position}" class="hidden-word">____</span>`;
                 const rawText = w.text_uthmani || w.text;
-                
-                // PINPOINTED AYAH MARKER WITH EMERALD CRESENTS
+                // ORNATE AYAH MARKER PINPOINT
                 if (w.char_type_name === "end" || /^\d+$/.test(rawText)) {
                     const cleanNumber = rawText.match(/\d+/) || [rawText];
                     return `<span id="word-${w.position}" class="ayah-marker-wrapper"><span class="ayah-marker-crescent">${cleanNumber[0]}</span></span>`;
                 }
-                
                 return `<span id="word-${w.position}" class="word-box">${rawText}</span>`;
             }).join(" ");
         }
 
-        // --- 5. INPUT HANDLERS (NORMALIZATION LOGIC) ---
         function handleKeyType(char) {
             const targetWord = wordsData[hiddenWordIndices[currentBlankStep]];
             if (!targetWord) return;
-
-            /**
-             * NORMALIZATION LOGIC:
-             * 1. Strips Harakat, Stop Marks, and Tatweel (ـ).
-             * 2. SUBSTITUTES Dagger Alif (\u0670) with standard Alif (ا).
-             * 3. Normalizes Alif variants (ٱأإآ) to Alif (ا).
-             */
+            // NORMALIZATION logic for Rahman/Tatweel + Dagger Alif Substitution
             const normalized = targetWord.text_uthmani
-                .replace(/[\u0640\u064B-\u065F\u06D6-\u06ED]/g, "") 
+                .replace(/[\u0640\u064B-\u065F\u0670\u06D6-\u06ED]/g, "")
                 .replace(/\u0670/g, "ا")                           
                 .replace(/[ٱأإآ]/g, 'ا');                          
             
@@ -568,37 +590,20 @@
                 const el = document.getElementById(`word-${targetWord.position}`);
                 el.innerText = currentTypedWord + "…"; 
                 el.style.color = "#059669"; 
-
                 if (currentTypedWord.length === normalized.length) {
-                    // Score Calculation
                     const bonus = (gameMode === 'advanced' ? 300 : 150);
                     const xpBonus = (gameMode === 'advanced' ? 30 : 15);
-                    score += bonus;
-                    userXP += xpBonus;
-                    
-                    // Reveal Word in Emerald Green
+                    score += bonus; userXP += xpBonus;
                     el.innerText = targetWord.text_uthmani; 
                     el.classList.remove('hidden-word', 'active-blank');
                     el.classList.add('filled-word', 'font-bold', 'text-emerald-700');
                     el.style.color = ""; 
-                    
-                    currentBlankStep++; 
-                    currentTypedWord = ""; 
-                    updateProfileUI();
-                    
+                    currentBlankStep++; currentTypedWord = ""; updateProfileUI();
                     if (gameMode === 'advanced') timeLeft = 20;
-                    
-                    if (currentBlankStep >= hiddenWordIndices.length) {
-                        completeVerseFlow();
-                    } else {
-                        generateQuiz();
-                    }
+                    if (currentBlankStep >= hiddenWordIndices.length) completeVerseFlow(); else generateQuiz();
                 }
             } else {
-                // WRONG KEY: -5 XP Penalty
-                userXP = Math.max(0, userXP - 5);
-                totalMistakes++;
-                updateProfileUI();
+                userXP = Math.max(0, userXP - 5); totalMistakes++; updateProfileUI();
                 const el = document.getElementById(`word-${targetWord.position}`);
                 el.classList.add('bg-rose-100');
                 setTimeout(() => el.classList.remove('bg-rose-100'), 200);
@@ -609,75 +614,47 @@
             const targetWord = wordsData[hiddenWordIndices[currentBlankStep]];
             if (word === targetWord.text_uthmani) {
                 btn.classList.add('btn-correct');
-                
                 const bonus = (gameMode === 'advanced' ? 200 : 100);
                 const xpBonus = (gameMode === 'advanced' ? 20 : 10);
-                score += bonus;
-                userXP += xpBonus;
-                
-                // Show in Ayah text as emerald green
+                score += bonus; userXP += xpBonus;
                 const el = document.getElementById(`word-${targetWord.position}`);
                 el.classList.remove('hidden-word', 'active-blank');
                 el.classList.add('filled-word', 'font-bold', 'text-emerald-700');
                 el.innerText = targetWord.text_uthmani;
-                
-                currentBlankStep++;
-                updateProfileUI();
-                
+                currentBlankStep++; updateProfileUI();
                 if (gameMode === 'advanced') timeLeft = 20;
-                
-                if (currentBlankStep >= hiddenWordIndices.length) {
-                    completeVerseFlow();
-                } else {
-                    setTimeout(generateQuiz, 400);
-                }
+                if (currentBlankStep >= hiddenWordIndices.length) completeVerseFlow(); else setTimeout(generateQuiz, 400);
             } else {
-                btn.classList.add('btn-wrong');
-                userXP = Math.max(0, userXP - 5);
-                updateProfileUI();
+                btn.classList.add('btn-wrong'); userXP = Math.max(0, userXP - 5); updateProfileUI();
                 const el = document.getElementById(`word-${targetWord.position}`);
                 el.innerText = targetWord.text_uthmani;
                 el.classList.add('text-rose-500', 'font-bold');
                 isVerseAnswered = true;
-                
                 if (document.getElementById('game-audio').ended) forceNextVerse();
             }
         }
 
-        // --- 6. QUIZ RENDERER ---
         function generateQuiz() {
             document.getElementById('quiz-area').classList.remove('hidden');
             const targetIdx = hiddenWordIndices[currentBlankStep];
             if (targetIdx === undefined) return;
-
             if (activeInputMethod === 'type') {
                 document.getElementById('quiz-options').classList.add('hidden');
                 document.getElementById('keyboard-area').classList.remove('hidden');
-                
                 const container = document.getElementById('keyboard-rows');
                 container.innerHTML = arabicLayout.map(row => `
                     <div class="flex justify-center gap-1">
-                        ${row.map(c => `
-                            <button onclick="handleKeyType('${c}')" class="key-btn flex-1 bg-white border border-stone-300 text-2xl quran-font py-3 rounded-lg font-bold shadow-sm">
-                                ${c}
-                            </button>`).join('')}
+                        ${row.map(c => `<button onclick="handleKeyType('${c}')" class="key-btn flex-1 bg-white border border-stone-300 text-2xl quran-font py-3 rounded-lg font-bold shadow-sm">${c}</button>`).join('')}
                     </div>`).join('');
             } else {
                 document.getElementById('quiz-options').classList.remove('hidden');
                 document.getElementById('keyboard-area').classList.add('hidden');
-                
                 const correct = wordsData[targetIdx].text_uthmani;
                 const choices = [correct];
                 const pool = wordsData.filter(w => w.char_type_name === 'word' && w.text_uthmani !== correct).map(w => w.text_uthmani);
-                
-                while(choices.length < 4 && pool.length > 0) {
-                    choices.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
-                }
-                
+                while(choices.length < 4 && pool.length > 0) choices.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
                 document.getElementById('quiz-options').innerHTML = choices.sort(() => Math.random() - 0.5).map(o => `
-                    <button onclick="checkAnswer('${o}', this)" class="bg-white border-2 border-stone-200 text-3xl quran-font p-6 rounded-xl hover:shadow-lg transition min-w-[120px] shadow-sm">
-                        ${o}
-                    </button>
+                    <button onclick="checkAnswer('${o}', this)" class="bg-white border-2 border-stone-200 text-3xl quran-font p-6 rounded-xl hover:shadow-lg transition min-w-[120px] shadow-sm">${o}</button>
                 `).join("");
             }
             highlightCurrentBlank();
@@ -686,26 +663,18 @@
         function highlightCurrentBlank() {
             document.querySelectorAll('.hidden-word').forEach(el => el.classList.remove('active-blank'));
             const currentPos = wordsData[hiddenWordIndices[currentBlankStep]]?.position;
-            if(currentPos) {
-                document.getElementById(`word-${currentPos}`).classList.add('active-blank');
-            }
+            if(currentPos) document.getElementById(`word-${currentPos}`).classList.add('active-blank');
         }
 
-        // --- 7. PROGRESSION ---
         function completeVerseFlow() {
-            isVerseAnswered = true;
-            clearInterval(timerInterval);
+            isVerseAnswered = true; clearInterval(timerInterval);
             const ayahKey = `${currentChapterId}:${currentVerseNum}`;
             if (!learnedAyahsList.includes(ayahKey)) {
                 learnedAyahsList.push(ayahKey);
                 localStorage.setItem('hifz_learned_ayahs', JSON.stringify(learnedAyahsList));
             }
-            updateProfileUI();
-            updateSessionProgress();
-            
-            if (document.getElementById('game-audio').ended) {
-                forceNextVerse();
-            }
+            updateProfileUI(); updateSessionProgress();
+            if (document.getElementById('game-audio').ended) forceNextVerse();
         }
 
         function forceNextVerse() {
@@ -713,17 +682,14 @@
                 currentVerseNum++;
                 loadVerse(currentVerseNum);
             } else {
-                // Session End
                 document.getElementById('session-progress-bar').style.width = '100%';
                 setTimeout(showFinalResult, 500);
             }
         }
 
-        // --- 8. AUDIO ENGINE ---
         function checkTiming() {
             const audio = document.getElementById('game-audio');
             if (audio.paused || audio.ended) return; 
-            
             const currentMs = audio.currentTime * 1000;
             timeSegments.forEach(s => {
                 if (currentMs >= s[1] && currentMs < s[2]) {
@@ -740,11 +706,11 @@
             const btn = document.getElementById('play-pause-btn');
             if (a.paused) {
                 a.play();
-                btn.innerText = "⏸ Pause";
+                btn.innerText = t[currentLang].pause;
                 requestAnimationFrame(checkTiming);
             } else {
                 a.pause();
-                btn.innerText = "▶ Play";
+                btn.innerText = t[currentLang].play;
             }
         }
 

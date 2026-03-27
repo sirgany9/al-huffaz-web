@@ -8,7 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; transition: all 0.3s; }
-        .rtl { direction: rtl; font-family: 'Amiri', serif; }
+        .rtl { direction: rtl; }
+        .rtl #hero-title, .rtl #hero-sub, .rtl nav, .rtl .q-logo-text { font-family: 'Amiri', serif; }
         .hero-pattern { background-image: radial-gradient(#d1fae5 2px, transparent 2px); background-size: 32px 32px; }
     </style>
 </head>
@@ -17,7 +18,7 @@
     <nav class="flex justify-between items-center p-6 bg-white border-b border-stone-100 shadow-sm relative z-50">
         <a href="index.html" class="flex items-center gap-2 font-black text-xl text-emerald-800">
             <span class="bg-emerald-700 text-white w-8 h-8 rounded-lg flex items-center justify-center text-lg">ق</span>
-            AL-HUFFAZ
+            <span class="q-logo-text">AL-HUFFAZ</span>
         </a>
 
         <div class="flex items-center gap-4">
@@ -79,13 +80,15 @@
         const translations = {
             en: { 
                 navLogin: "Log In", navSignup: "Sign Up", navDash: "Dashboard", navPlay: "Continue", 
-                heroTag: "Interactive Hifz Platform 📖", heroTitle: "Memorize the Quran <br> <span class='text-emerald-600'>Word by Word</span>",
+                heroTag: "Interactive Hifz Platform 📖", 
+                heroTitle: "Memorize the Quran <br> <span class='text-emerald-600'>Word by Word</span>",
                 heroSub: "Test your memory with interactive blanks, track progress, and listen to world-class reciters.",
                 mainPlay: "Start Learning", mainDash: "Dashboard", langBtn: "العربية"
             },
             ar: { 
                 navLogin: "تسجيل الدخول", navSignup: "إنشاء حساب", navDash: "لوحة المتابعة", navPlay: "استمرار", 
-                heroTag: "منصة تحفيظ تفاعلية 📖", heroTitle: "احفظ القرآن الكريم <br> <span class='text-emerald-600'>كلمة بكلمة</span>",
+                heroTag: "منصة تحفيظ تفاعلية 📖", 
+                heroTitle: "احفظ القرآن الكريم <br> <span class='text-emerald-600'>كلمة بكلمة</span>",
                 heroSub: "اختبر ذاكرتك بالفراغات التفاعلية، تابع تقدمك، واستمع لأشهر القراء.",
                 mainPlay: "ابدأ التعلم الآن", mainDash: "الإحصائيات", langBtn: "English"
             }
@@ -93,7 +96,17 @@
 
         window.applyLanguage = function(lang) {
             const t = translations[lang];
-            document.getElementById('main-body').className = lang === 'ar' ? 'text-slate-900 flex flex-col min-h-screen rtl' : 'text-slate-900 flex flex-col min-h-screen';
+            // Toggle RTL Class on Body
+            const body = document.getElementById('main-body');
+            if (lang === 'ar') {
+                body.classList.add('rtl');
+                document.documentElement.dir = "rtl";
+            } else {
+                body.classList.remove('rtl');
+                document.documentElement.dir = "ltr";
+            }
+            
+            // Update Text Labels
             document.getElementById('nav-login').innerText = t.navLogin;
             document.getElementById('nav-signup').innerText = t.navSignup;
             document.getElementById('nav-dash').innerText = t.navDash;
@@ -107,13 +120,19 @@
         };
 
         window.toggleLanguage = function() {
-            const newLang = localStorage.getItem('huffaz_lang') === 'ar' ? 'en' : 'ar';
-            localStorage.setItem('huffaz_lang', newLang);
+            // Check current saved lang, then flip it
+            const currentLang = localStorage.getItem('hifz_lang') || 'en';
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            
+            // SAVE to localStorage (This is the "Handshake" with play.html)
+            localStorage.setItem('hifz_lang', newLang);
+            
+            // Apply visually
             applyLanguage(newLang);
         };
 
-        // Initialize
-        const savedLang = localStorage.getItem('huffaz_lang') || 'en';
+        // Initialize on page load
+        const savedLang = localStorage.getItem('hifz_lang') || 'en';
         applyLanguage(savedLang);
 
         onAuthStateChanged(auth, (user) => {

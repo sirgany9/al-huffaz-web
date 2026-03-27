@@ -8,8 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; transition: all 0.3s ease; }
-        .rtl { direction: rtl; font-family: 'Amiri', serif; }
-        .rtl #dash-level, .rtl #daily-pct, .rtl #alltime-pct { font-family: 'Inter', sans-serif; } /* Keep numbers readable */
+        /* RTL Support for Arabic */
+        .rtl { direction: rtl; }
+        .rtl #page-title, .rtl #user-greeting, .rtl #back-home, .rtl #continue-learning, .rtl #label-next-level { font-family: 'Amiri', serif; }
+        /* Keep numbers in standard font for better readability in wheels/stats */
+        .rtl #dash-level, .rtl #daily-pct, .rtl #alltime-pct, .rtl #dash-xp, .rtl #dash-ayahs { font-family: 'Inter', sans-serif; }
     </style>
 </head>
 <body id="main-body" class="text-slate-900 flex flex-col min-h-screen">
@@ -131,7 +134,16 @@
 
         window.applyLanguage = function(lang) {
             const t = translations[lang];
-            document.getElementById('main-body').className = lang === 'ar' ? 'text-slate-900 flex flex-col min-h-screen rtl' : 'text-slate-900 flex flex-col min-h-screen';
+            const body = document.getElementById('main-body');
+            
+            if (lang === 'ar') {
+                body.classList.add('rtl');
+                document.documentElement.dir = "rtl";
+            } else {
+                body.classList.remove('rtl');
+                document.documentElement.dir = "ltr";
+            }
+
             document.getElementById('back-home').innerText = t.back;
             document.getElementById('continue-learning').innerText = t.continue;
             document.getElementById('logout-btn').innerText = t.logout;
@@ -146,13 +158,15 @@
         };
 
         window.toggleLanguage = function() {
-            const newLang = localStorage.getItem('huffaz_lang') === 'ar' ? 'en' : 'ar';
-            localStorage.setItem('huffaz_lang', newLang);
+            // Unified Key: hifz_lang
+            const currentLang = localStorage.getItem('hifz_lang') || 'en';
+            const newLang = currentLang === 'ar' ? 'en' : 'ar';
+            localStorage.setItem('hifz_lang', newLang);
             applyLanguage(newLang);
-            location.reload(); // Reload to refresh data logic
+            location.reload(); 
         };
 
-        const currentLang = localStorage.getItem('huffaz_lang') || 'en';
+        const currentLang = localStorage.getItem('hifz_lang') || 'en';
         applyLanguage(currentLang);
 
         // --- Core UI Update Function ---
@@ -175,7 +189,6 @@
             const DAILY_GOAL = parseInt(localStorage.getItem('hifz_daily_goal')) || 10;
             const allTimePct = Math.min(100, Math.round((totalAyahs / 6236) * 100));
             
-            // Logic: Use real cloud count if available, otherwise estimate from local data
             const currentDaily = isCloud ? cloudDailyCount : (totalAyahs % DAILY_GOAL || (totalAyahs > 0 ? DAILY_GOAL : 0));
             const dailyPct = Math.min(100, Math.round((currentDaily / DAILY_GOAL) * 100));
 
@@ -192,7 +205,7 @@
             }, 100);
         }
 
-        // --- Auth Listener (Cloud Sync) ---
+        // --- Auth Listener ---
         onAuthStateChanged(auth, async (user) => {
             const logoutBtn = document.getElementById('logout-btn');
             const greeting = document.getElementById('user-greeting');
@@ -219,6 +232,7 @@
                 }
             } else {
                 logoutBtn.classList.add('hidden');
+                greeting.innerText = (currentLang === 'ar' ? 'سجل دخولك لحفظ تقدمك' : 'Log in to save your progress');
                 let localXP = parseInt(localStorage.getItem('hifz_xp')) || 0;
                 let localAyahs = JSON.parse(localStorage.getItem('hifz_learned_ayahs')) || [];
                 updateDashboardUI(localXP, localAyahs, false, 0);
