@@ -12,6 +12,8 @@
         body { font-family: 'Inter', sans-serif; background-color: #f5f5f4; color: #1e293b; transition: all 0.3s ease; overflow-x: hidden; }
         .quran-font { font-family: 'Amiri', serif; direction: rtl; line-height: 2.3; text-rendering: optimizeLegibility; transition: opacity 0.3s ease; }
 
+        .verse-loading { opacity: 0.15; pointer-events: none; }
+
         /* DYNAMIC RECITATION BEAM */
         #hover-glow-beam {
             position: absolute; height: 4px; background: #10b981;
@@ -29,7 +31,6 @@
         .word-box, .hidden-word { display: inline-block; margin: 0 6px; border-radius: 8px; padding: 2px 8px; cursor: pointer; position: relative; transition: all 0.3s ease; z-index: 50; }
         .hidden-word { min-width: 75px; text-align: center; background-color: rgba(255, 255, 255, 0.5); color: #cbd5e1; letter-spacing: 1px; border: 1px dashed #e2e8f0; }
 
-        /* EMERALD HIGHLIGHTS */
         .active-blank { background-color: #ecfdf5 !important; border: 1.5px solid #10b981 !important; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
         .typed-correct { color: #059669 !important; font-weight: 900; background-color: #ecfdf5 !important; border-radius: 4px; padding: 0 4px; display: inline-block; }
         .filled-word { color: #059669 !important; font-weight: 900; background-color: #ecfdf5 !important; animation: popIn 0.4s ease-out; border-radius: 8px; }
@@ -188,6 +189,7 @@
 
     <script>
         const WBW_BASE = "https://static.quranwbw.com/data/v4/words", EVERYAYAH_BASE = "https://www.everyayah.com/data";
+        const PROXY = "https://api.allorigins.win/get?url=";
         let surahFullData = null, allChapters = [], currentChapterId = 1, currentVerseNum = 1, startVerseNum = 1, endVerseNum = 7;
         let wordsData = [], hiddenWordIndices = [], currentBlankStep = 0, currentTypedWord = "", sessionScore = 0, isVerseAnswered = false, isFetching = false, isAdvancing = false;
         let timerInterval = null, timeLeft = 20, currentInputMethod = 'choose', isTransitioning = false;
@@ -244,16 +246,7 @@
         function saveSettingsAndClose() { currentReciterFolder = document.getElementById('reciter-select').value; localStorage.setItem('hifz_rec_folder', currentReciterFolder); toggleSettings(false); }
         function setInputMethod(method) { currentInputMethod = method; document.getElementById('mode-toggle-choose').classList.toggle('active', method === 'choose'); document.getElementById('mode-toggle-type').classList.toggle('active', method === 'type'); generateQuiz(); if(method === 'type' && isMobile) document.getElementById('mobile-input').focus(); }
         function updateProfileUI() { const level = Math.floor(userXP / 500) + 1, prog = Math.min(100, ((userXP % 500) / 500) * 100); document.getElementById('level-display').innerText = level; document.getElementById('ayahs-learned-display').innerText = learnedAyahsList.length; document.getElementById('xp-progress-bar').style.width = `${prog}%`; localStorage.setItem('hifz_xp', userXP); }
-        
-        function updateAyahRange() { 
-            const s = document.getElementById('surah-select'), chapter = allChapters.find(c => c.id == s.value); 
-            if(chapter) { 
-                document.getElementById('total-ayahs-display').innerText = `${t[currentLang]?.totalAyahs || 'Total Ayahs'}: ${chapter.verses_count}`; 
-                document.getElementById('start-ayah').value = 1; 
-                document.getElementById('end-ayah').value = chapter.verses_count; 
-            } 
-        }
-
+        function updateAyahRange() { const s = document.getElementById('surah-select'), chapter = allChapters.find(c => c.id == s.value); if(chapter) { document.getElementById('total-ayahs-display').innerText = `${t[currentLang]?.totalAyahs || 'Total Ayahs'}: ${chapter.verses_count}`; document.getElementById('start-ayah').value = 1; document.getElementById('end-ayah').value = chapter.verses_count; } }
         function stopAudio() { const audio = document.getElementById('game-audio'); if (audio) { audio.pause(); audio.src = ""; audio.load(); } document.getElementById('hover-glow-beam').style.opacity = 0; document.getElementById('target-glow-beam').style.opacity = 0; isFetching = isTransitioning = false; }
 
         async function startGame() {
@@ -264,26 +257,25 @@
             
             document.getElementById('loading-text').classList.remove('hidden');
             try {
-                // FALLBACK TO ENSURE FETCH WORKS
-                const resp = await fetch(`${WBW_BASE}/${currentChapterId}.json`); 
-                if (!resp.ok) throw new Error("Fetch failed");
-                surahFullData = await resp.json();
+                // FIXED WITH CORS PROXY
+                const resp = await fetch(`${PROXY}${encodeURIComponent(`${WBW_BASE}/${currentChapterId}.json`)}`);
+                const data = await resp.json();
+                surahFullData = JSON.parse(data.contents);
+
                 document.getElementById('selection-area').classList.add('hidden'); 
                 document.getElementById('game-area').classList.remove('hidden');
                 document.getElementById('surah-name-display').innerText = allChapters.find(c => c.id == currentChapterId).name_simple;
                 currentVerseNum = startVerseNum; 
                 loadVerse(currentVerseNum);
             } catch(e) { 
-                alert("Failed to load Surah data."); 
-                console.error("QuranWBW API Error:", e);
+                alert("Failed to load Surah data. Check connection."); 
                 document.getElementById('loading-text').classList.add('hidden'); 
             }
         }
 
         function loadVerse(num) {
             if(timerInterval) clearInterval(timerInterval);
-            const l = t[currentLang] || t['en']; 
-            document.getElementById('verse-progress-display').innerHTML = `${l.ayah} ${num} / ${endVerseNum}`;
+            const l = t[currentLang] || t['en']; document.getElementById('verse-progress-display').innerHTML = `${l.ayah} ${num} / ${endVerseNum}`;
             isVerseAnswered = false; currentBlankStep = 0; currentTypedWord = ""; isFetching = true;
             
             const verseData = surahFullData[num - 1]; 
@@ -291,29 +283,14 @@
             const valid = wordsData.reduce((acc, w, i) => (w.text ? [...acc, i] : acc), []); 
             hiddenWordIndices = valid.sort(() => Math.random() - 0.5).slice(0, Math.ceil((parseInt(document.getElementById('difficulty-level').value) / 100) * valid.length)).sort((a, b) => a - b); 
             
-            renderVerse(num); 
-            generateQuiz();
-            
+            renderVerse(num); generateQuiz();
             const audioEl = document.getElementById('game-audio'); 
             audioEl.src = `${EVERYAYAH_BASE}/${currentReciterFolder}/${currentChapterId.toString().padStart(3, '0')}${num.toString().padStart(3, '0')}.mp3`;
             audioEl.onended = () => { if (isVerseAnswered) checkAndAdvance(); };
-            audioEl.onloadeddata = () => { 
-                isFetching = false; 
-                document.getElementById('loading-text').classList.add('hidden'); 
-                document.getElementById('audio-controls').classList.remove('hidden'); 
-                togglePlayPause(); 
-                if (document.getElementById('game-logic').value === 'advanced') startTimer(); 
-            };
+            audioEl.onloadeddata = () => { isFetching = false; document.getElementById('loading-text').classList.add('hidden'); document.getElementById('audio-controls').classList.remove('hidden'); togglePlayPause(); if (document.getElementById('game-logic').value === 'advanced') startTimer(); };
         }
 
-        function renderVerse(vNum) { 
-            const eastern = toEasternArabic(vNum); 
-            const html = wordsData.map((w, i) => { 
-                if (hiddenWordIndices.includes(i)) return `<span id="word-${i}" class="hidden-word" onclick="if(isMobile) document.getElementById('mobile-input').focus()">${"_".repeat(normalizeArabic(w.text).length)}</span>`; 
-                return `<span id="word-${i}" class="word-box">${w.text}</span>`; 
-            }).join(" ");
-            document.getElementById('verse-display').innerHTML = html + ` <span class="ayah-marker-wrapper"><span class="ayah-marker-crescent">${eastern}</span></span>`; 
-        }
+        function renderVerse(vNum) { const eastern = toEasternArabic(vNum); document.getElementById('verse-display').innerHTML = wordsData.map((w, i) => { if (hiddenWordIndices.includes(i)) return `<span id="word-${i}" class="hidden-word" onclick="if(isMobile) document.getElementById('mobile-input').focus()">${"_".repeat(normalizeArabic(w.text).length)}</span>`; return `<span id="word-${i}" class="word-box">${w.text}</span>`; }).join(" ") + ` <span class="ayah-marker-wrapper"><span class="ayah-marker-crescent">${eastern}</span></span>`; }
         
         function syncGlow() {
             if (isTransitioning) return; 
