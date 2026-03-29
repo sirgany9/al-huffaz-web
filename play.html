@@ -14,32 +14,28 @@
 
         .verse-loading { opacity: 0.15; pointer-events: none; }
 
-        /* DYNAMIC RECITATION BEAM */
         #hover-glow-beam {
-            position: absolute; height: 4px; background: #10b981;
-            border-radius: 10px; box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
-            transition: all 0.1s linear; pointer-events: none; z-index: 40; opacity: 0;
+            position: absolute; height: 4px; background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 10px; box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+            transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); pointer-events: none; z-index: 60; opacity: 0;
         }
 
-        /* TARGET BEAM (Constant Highlight) */
-        #target-glow-beam {
-            position: absolute; height: 6px; background: rgba(16, 185, 129, 0.2);
-            border-radius: 10px; pointer-events: none; z-index: 30; opacity: 0;
-            transition: all 0.4s ease;
-        }
-
-        .word-box, .hidden-word { display: inline-block; margin: 0 6px; border-radius: 8px; padding: 2px 8px; cursor: pointer; position: relative; transition: all 0.3s ease; z-index: 50; }
+        .word-box, .hidden-word { display: inline-block; margin: 0 6px; border-radius: 8px; padding: 2px 8px; cursor: pointer; position: relative; transition: all 0.3s ease; }
+        .active-word { background-color: rgba(16, 185, 129, 0.1); border-radius: 10px; }
         .hidden-word { min-width: 75px; text-align: center; background-color: rgba(255, 255, 255, 0.5); color: #cbd5e1; letter-spacing: 1px; border: 1px dashed #e2e8f0; }
 
-        .active-blank { background-color: #ecfdf5 !important; border: 1.5px solid #10b981 !important; box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
+        /* EMERALD HIGHLIGHT REFINEMENT */
         .typed-correct { color: #059669 !important; font-weight: 900; background-color: #ecfdf5 !important; border-radius: 4px; padding: 0 4px; display: inline-block; }
         .filled-word { color: #059669 !important; font-weight: 900; background-color: #ecfdf5 !important; animation: popIn 0.4s ease-out; border-radius: 8px; }
+        .active-blank { background-color: #ecfdf5; border-radius: 8px; border: 1px solid #10b981; }
 
         @keyframes shuffleIn { 0% { transform: translateY(12px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
         .option-anim { animation: shuffleIn 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67) forwards; opacity: 0; }
 
         .key-sq { width: 3.2rem; height: 3.2rem; display: flex; align-items: center; justify-content: center; background: white; border: 1px solid #d1d5db; border-radius: 0.75rem; font-weight: bold; font-size: 1.5rem; transition: all 0.15s ease; cursor: pointer; }
-        
+        .key-flash-correct { background-color: #d1fae5 !important; border-color: #10b981 !important; color: #065f46 !important; transform: scale(0.95); }
+        .key-flash-wrong { background-color: #fee2e2 !important; border-color: #ef4444 !important; color: #991b1b !important; transform: scale(0.95); }
+
         @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
         .error-shake { animation: shake 0.2s ease-in-out 2; background-color: #fee2e2 !important; }
@@ -56,6 +52,7 @@
 </head>
 
 <body>
+    <div id="hover-glow-beam"></div>
     <input type="text" id="mobile-input" class="opacity-0 absolute -z-10 h-0 w-0 p-0 border-0 outline-none" autocomplete="off">
 
     <nav class="bg-white border-b border-stone-200 p-3 flex justify-between items-center shadow-sm sticky top-0 z-[100]">
@@ -134,8 +131,6 @@
                 </div>
             </div>
             <div class="bg-white p-6 md:p-14 rounded-[2.5rem] shadow-lg border border-stone-200 mb-6 text-center min-h-[350px] flex items-center justify-center overflow-hidden relative">
-                <div id="target-glow-beam"></div>
-                <div id="hover-glow-beam"></div>
                 <p id="loading-text" class="text-emerald-600 font-bold animate-pulse text-lg hidden absolute z-10">Synchronizing...</p>
                 <div id="verse-display" class="quran-font text-slate-800" style="font-size: 3.5rem;"></div>
                 <audio id="game-audio" class="hidden"></audio>
@@ -188,20 +183,19 @@
     </div>
 
     <script>
-        const WBW_BASE = "https://static.quranwbw.com/data/v4/words", EVERYAYAH_BASE = "https://www.everyayah.com/data";
-        const PROXY = "https://api.allorigins.win/get?url=";
-        let surahFullData = null, allChapters = [], currentChapterId = 1, currentVerseNum = 1, startVerseNum = 1, endVerseNum = 7;
-        let wordsData = [], hiddenWordIndices = [], currentBlankStep = 0, currentTypedWord = "", sessionScore = 0, isVerseAnswered = false, isFetching = false, isAdvancing = false;
+        const API_BASE = "https://api.quran.com/api/v4", EVERYAYAH_BASE = "https://www.everyayah.com/data";
+        let currentAbortController = null, allChapters = [], currentChapterId = 1, currentVerseNum = 1, startVerseNum = 1, endVerseNum = 7;
+        let wordsData = [], timeSegments = [], hiddenWordIndices = [], currentBlankStep = 0, currentTypedWord = "", sessionScore = 0, isVerseAnswered = false, isFetching = false, isAdvancing = false;
         let timerInterval = null, timeLeft = 20, currentInputMethod = 'choose', isTransitioning = false;
-        let currentReciterFolder = localStorage.getItem('hifz_rec_folder') || "Minshawy_Murattal_128kbps";
+        let currentReciterFolder = localStorage.getItem('hifz_rec_folder') || "Minshawy_Murattal_128kbps", currentReciterId = parseInt(localStorage.getItem('hifz_rec_id')) || 9;
         let currentFontSize = parseFloat(localStorage.getItem('hifz_font_size_num')) || 3.5, userXP = parseInt(localStorage.getItem('hifz_xp')) || 0;
         let learnedAyahsList = JSON.parse(localStorage.getItem('hifz_learned_ayahs')) || []; const currentLang = localStorage.getItem('hifz_lang') || 'en';
 
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
         const t = {
-            en: { back: '← Back', ayahs: 'Ayahs Learned', step1: 'Setup Session', totalAyahs: 'Total Ayahs', loading: 'Fetching Surahs...', from: 'From', to: 'To', mode: 'Mode', diff: 'Difficulty', start: 'Start Learning', setTitle: 'Settings', setGoal: 'Daily Goal', setRec: 'Reciter', setSave: 'Save Changes', surah: 'Surah', ayah: 'Ayah', endEarly: 'End', loadingAyah: 'Synchronizing...', play: '▶ Play', pause: '⏸ Pause', replay: 'Replay', next: 'Next ⏭', resComplete: 'MashaAllah!', resContinue: 'Continue', optPractice: 'Practice', optTimed: 'Timed', optChoose: 'Choose Word', optType: 'Type Every Letter', d10: '10%', d25: '25%', d50: '50%', d100: '100%', reciters: [{ folder: "Minshawy_Murattal_128kbps", name: "Minshawi" }, { folder: "Husary_128kbps", name: "Al-Husary" }, { folder: "Abdul_Basit_Murattal_64kbps", name: "AbdulBaset" }] },
-            ar: { back: '← عودة', ayahs: 'الآيات المحفوظة', step1: 'إعداد الجلسة', totalAyahs: 'عدد الآيات الكلي', loading: 'جاري تحميل السور...', from: 'من آية', to: 'إلى آية', mode: 'وضع اللعب', diff: 'المستوى', start: 'ابدأ التعلم', setTitle: 'الإعدادات', setGoal: 'الهدف اليومي', setRec: 'صوت القارئ', setSave: 'حفظ التغييرات', surah: 'سورة', ayah: 'آية', endEarly: 'إنهاء', loadingAyah: 'جاري المزامنة...', play: '▶ تشغيل', pause: 'إيقاف', replay: 'إعادة', next: 'التالية ⏭', resComplete: 'ما شاء الله!', resContinue: 'متابعة التعلم', optPractice: 'تدريب', optTimed: 'مؤقت', optChoose: 'اختر الكلمة', optType: 'اكتب كل حرف', d10: '١٠%', d25: '٢٥%', d50: '٥٠%', d100: '١٠٠%', reciters: [{ folder: "Minshawy_Murattal_128kbps", name: "المنشاوي" }, { folder: "Husary_128kbps", name: "الحصري" }, { folder: "Abdul_Basit_Murattal_64kbps", name: "عبد الباسط عبد الصمد" }] }
+            en: { back: '← Back', ayahs: 'Ayahs Learned', step1: 'Setup Session', totalAyahs: 'Total Ayahs', loading: 'Fetching Surahs...', from: 'From', to: 'To', mode: 'Mode', diff: 'Difficulty', start: 'Start Learning', setTitle: 'Settings', setGoal: 'Daily Goal', setRec: 'Reciter', setSave: 'Save Changes', surah: 'Surah', ayah: 'Ayah', endEarly: 'End', loadingAyah: 'Synchronizing...', play: '▶ Play', pause: '⏸ Pause', replay: '↺ Replay', next: 'Next ⏭', resComplete: 'MashaAllah!', resContinue: 'Continue', optPractice: 'Practice', optTimed: 'Timed', optChoose: 'Choose Word', optType: 'Type Every Letter', d10: '10%', d25: '25%', d50: '50%', d100: '100%', reciters: [{ id: 9, folder: "Minshawy_Murattal_128kbps", name: "Minshawi" }, { id: 6, folder: "Husary_128kbps", name: "Al-Husary" }, { id: 2, folder: "Abdul_Basit_Murattal_64kbps", name: "AbdulBaset" }] },
+            ar: { back: '← عودة', ayahs: 'الآيات المحفوظة', step1: 'إعداد الجلسة', totalAyahs: 'عدد الآيات الكلي', loading: 'جاري تحميل السور...', from: 'من آية', to: 'إلى آية', mode: 'وضع اللعب', diff: 'المستوى', start: 'ابدأ التعلم', setTitle: 'الإعدادات', setGoal: 'الهدف اليومي', setRec: 'صوت القارئ', setSave: 'حفظ التغييرات', surah: 'سورة', ayah: 'آية', endEarly: 'إنهاء', loadingAyah: 'جاري المزامنة...', play: '▶ تشغيل', pause: 'إيقاف', replay: 'إعادة', next: 'التالية ⏭', resComplete: 'ما شاء الله!', resContinue: 'متابعة التعلم', optPractice: 'تدريب', optTimed: 'مؤقت', optChoose: 'اختر الكلمة', optType: 'اكتب كل حرف', d10: '١٠%', d25: '٢٥%', d50: '٥٠%', d100: '١٠٠%', reciters: [{ id: 9, folder: "Minshawy_Murattal_128kbps", name: "المنشاوي" }, { id: 6, folder: "Husary_128kbps", name: "الحصري" }, { id: 2, folder: "Abdul_Basit_Murattal_64kbps", name: "عبد الباسط عبد الصمد" }] }
         };
         const arabicLayout = [['ذ','ض','ص','ث','ق','ف','غ','ع','ه','خ','ح','ج','د'],['ش','س','ي','ب','ل','ا','ت','ن','م','ك','ط'],['ئ','ء','ؤ','ر','ى','ة','و','ز','ظ']];
 
@@ -211,130 +205,144 @@
         function normalizeArabic(text) { return text.replace(/[\u064B-\u065F\u0640\u06D6-\u06ED]/g, "").replace(/\u0670/g, "ا").replace(/\u06E5/g, "و").replace(/\u06E6/g, "ي").replace(/[أإآٱ]/g, "ا").replace(/[ى]/g, "ي"); }
 
         function applyLanguage() {
-            const l = t[currentLang] || t['en']; document.getElementById('main-html').dir = (currentLang === 'ar' ? 'rtl' : 'ltr');
-            document.getElementById('label-back').innerText = l.back; document.getElementById('nav-ayahs-label').innerText = l.ayahs;
-            document.getElementById('step1-title').innerText = l.step1; document.getElementById('label-from').innerText = l.from;
-            document.getElementById('label-to').innerText = l.to; document.getElementById('label-mode').innerText = l.mode;
-            document.getElementById('label-diff').innerText = l.diff; document.getElementById('btn-start').innerText = l.start;
-            document.getElementById('set-title').innerText = l.setTitle; document.getElementById('set-goal').innerText = l.setGoal;
-            document.getElementById('set-save').innerText = l.setSave; document.getElementById('btn-end').innerText = l.endEarly;
-            document.getElementById('loading-text').innerText = l.loadingAyah; document.getElementById('surah-load-text').innerText = l.loading;
-            document.getElementById('opt-practice').innerText = l.optPractice; document.getElementById('opt-advanced').innerText = l.optTimed;
-            document.getElementById('diff-10').innerText = l.d10; document.getElementById('diff-25').innerText = l.d25;
-            document.getElementById('diff-50').innerText = l.d50; document.getElementById('diff-100').innerText = l.d100;
-            document.getElementById('mode-toggle-choose').innerText = l.optChoose; document.getElementById('mode-toggle-type').innerText = l.optType;
-            document.getElementById('res-complete').innerText = l.resComplete; document.getElementById('res-continue').innerText = l.resContinue;
+            const l = t[currentLang]; document.getElementById('main-html').dir = (currentLang === 'ar' ? 'rtl' : 'ltr');
+            document.getElementById('label-back').innerText = l.back; 
+            document.getElementById('nav-ayahs-label').innerText = l.ayahs;
+            document.getElementById('step1-title').innerText = l.step1; 
+            document.getElementById('label-from').innerText = l.from;
+            document.getElementById('label-to').innerText = l.to; 
+            document.getElementById('label-mode').innerText = l.mode;
+            document.getElementById('label-diff').innerText = l.diff; 
+            document.getElementById('btn-start').innerText = l.start;
+            document.getElementById('set-title').innerText = l.setTitle; 
+            document.getElementById('set-goal').innerText = l.setGoal;
+            document.getElementById('set-save').innerText = l.setSave; 
+            document.getElementById('btn-end').innerText = l.endEarly;
+            document.getElementById('loading-text').innerText = l.loadingAyah; 
+            document.getElementById('surah-load-text').innerText = l.loading;
+            document.getElementById('opt-practice').innerText = l.optPractice; 
+            document.getElementById('opt-advanced').innerText = l.optTimed;
+            document.getElementById('diff-10').innerText = l.d10; 
+            document.getElementById('diff-25').innerText = l.d25;
+            document.getElementById('diff-50').innerText = l.d50; 
+            document.getElementById('diff-100').innerText = l.d100;
+            document.getElementById('mode-toggle-choose').innerText = l.optChoose; 
+            document.getElementById('mode-toggle-type').innerText = l.optType;
+            document.getElementById('res-complete').innerText = l.resComplete; 
+            document.getElementById('res-continue').innerText = l.resContinue;
             document.getElementById('btn-next').innerText = l.next;
-            const rs = document.getElementById('reciter-select'); rs.innerHTML = l.reciters.map(r => `<option value="${r.folder}" ${currentReciterFolder == r.folder ? 'selected' : ''}>${r.name}</option>`).join("");
+            document.getElementById('play-pause-btn').innerText = (document.getElementById('game-audio').paused ? l.play : l.pause);
+            document.getElementById('btn-replay').innerHTML = `↺ ${l.replay}`;
+
+            const rs = document.getElementById('reciter-select'); 
+            rs.innerHTML = l.reciters.map(r => `<option value="${r.folder}" data-id="${r.id}" ${currentReciterId == r.id ? 'selected' : ''}>${r.name}</option>`).join("");
             updateFontSizeUI();
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
             applyLanguage(); updateProfileUI(); 
-            try {
-                const resp = await fetch(`https://api.quran.com/api/v4/chapters?language=${currentLang}`); 
-                const data = await resp.json(); allChapters = data.chapters; 
-                document.getElementById('surah-select').innerHTML = allChapters.map(c => `<option value="${c.id}">${c.id}. ${c.name_simple} - ${c.name_arabic}</option>`).join("");
-                updateAyahRange();
-            } catch(e) { console.error("Surah Load Failed", e); }
-            
+            async function fetchChapters() {
+                try { 
+                    const response = await fetch(`${API_BASE}/chapters?language=${currentLang}`); 
+                    const data = await response.json(); allChapters = data.chapters; 
+                    document.getElementById('surah-select').innerHTML = allChapters.map(c => `<option value="${c.id}">${c.id}. ${c.name_simple} - ${c.name_arabic}</option>`).join("");
+                    updateAyahRange(); 
+                } catch (e) { setTimeout(fetchChapters, 2000); }
+            }
+            fetchChapters();
             window.addEventListener('keydown', (e) => { if (!document.getElementById('game-area').classList.contains('hidden') && currentInputMethod === 'type' && /^[\u0621-\u064A\u0671]$/.test(e.key)) handleTypeLetter(e.key); });
-            document.getElementById('mobile-input').addEventListener('input', (e) => { const char = e.target.value.slice(-1); if (/^[\u0621-\u064A\u0671]$/.test(char)) handleTypeLetter(char); e.target.value = ""; });
+            document.getElementById('mobile-input').addEventListener('input', (e) => {
+                const char = e.target.value.slice(-1);
+                if (/^[\u0621-\u064A\u0671]$/.test(char)) handleTypeLetter(char);
+                e.target.value = "";
+            });
         });
 
         function toggleSettings(show) { document.getElementById('settings-modal').classList.toggle('hidden', !show); }
-        function saveSettingsAndClose() { currentReciterFolder = document.getElementById('reciter-select').value; localStorage.setItem('hifz_rec_folder', currentReciterFolder); toggleSettings(false); }
-        function setInputMethod(method) { currentInputMethod = method; document.getElementById('mode-toggle-choose').classList.toggle('active', method === 'choose'); document.getElementById('mode-toggle-type').classList.toggle('active', method === 'type'); generateQuiz(); if(method === 'type' && isMobile) document.getElementById('mobile-input').focus(); }
+        function saveSettingsAndClose() { 
+            const sel = document.getElementById('reciter-select'); 
+            currentReciterFolder = sel.value; 
+            currentReciterId = parseInt(sel.options[sel.selectedIndex].getAttribute('data-id')); 
+            localStorage.setItem('hifz_rec_folder', currentReciterFolder); 
+            localStorage.setItem('hifz_rec_id', currentReciterId); 
+            localStorage.setItem('hifz_daily_goal', document.getElementById('daily-goal-input').value);
+            toggleSettings(false); 
+        }
+        function setInputMethod(method) { 
+            currentInputMethod = method; 
+            document.getElementById('mode-toggle-choose').classList.toggle('active', method === 'choose'); 
+            document.getElementById('mode-toggle-type').classList.toggle('active', method === 'type'); 
+            generateQuiz(); 
+            if(method === 'type' && isMobile) document.getElementById('mobile-input').focus();
+        }
         function updateProfileUI() { const level = Math.floor(userXP / 500) + 1, prog = Math.min(100, ((userXP % 500) / 500) * 100); document.getElementById('level-display').innerText = level; document.getElementById('ayahs-learned-display').innerText = learnedAyahsList.length; document.getElementById('xp-progress-bar').style.width = `${prog}%`; localStorage.setItem('hifz_xp', userXP); }
-        function updateAyahRange() { const s = document.getElementById('surah-select'), chapter = allChapters.find(c => c.id == s.value); if(chapter) { document.getElementById('total-ayahs-display').innerText = `${t[currentLang]?.totalAyahs || 'Total Ayahs'}: ${chapter.verses_count}`; document.getElementById('start-ayah').value = 1; document.getElementById('end-ayah').value = chapter.verses_count; } }
-        function stopAudio() { const audio = document.getElementById('game-audio'); if (audio) { audio.pause(); audio.src = ""; audio.load(); } document.getElementById('hover-glow-beam').style.opacity = 0; document.getElementById('target-glow-beam').style.opacity = 0; isFetching = isTransitioning = false; }
+        function updateAyahRange() { 
+            const s = document.getElementById('surah-select'), chapter = allChapters.find(c => c.id == s.value); 
+            if(chapter) { 
+                document.getElementById('total-ayahs-display').innerText = `${t[currentLang].totalAyahs}: ${chapter.verses_count}`;
+                const startInp = document.getElementById('start-ayah'), endInp = document.getElementById('end-ayah');
+                startInp.max = endInp.max = chapter.verses_count; startInp.value = 1; endInp.value = chapter.verses_count;
+            } 
+        }
+        function stopAudio() { const audio = document.getElementById('game-audio'); if (audio) { audio.pause(); audio.src = ""; audio.load(); } document.getElementById('hover-glow-beam').style.opacity = 0; isFetching = isTransitioning = false; }
 
-        async function startGame() {
-            if (!allChapters.length) return;
-            currentChapterId = document.getElementById('surah-select').value; 
-            startVerseNum = parseInt(document.getElementById('start-ayah').value); 
-            endVerseNum = parseInt(document.getElementById('end-ayah').value);
-            
-            document.getElementById('loading-text').classList.remove('hidden');
-            try {
-                // FIXED WITH CORS PROXY
-                const resp = await fetch(`${PROXY}${encodeURIComponent(`${WBW_BASE}/${currentChapterId}.json`)}`);
-                const data = await resp.json();
-                surahFullData = JSON.parse(data.contents);
-
-                document.getElementById('selection-area').classList.add('hidden'); 
-                document.getElementById('game-area').classList.remove('hidden');
-                document.getElementById('surah-name-display').innerText = allChapters.find(c => c.id == currentChapterId).name_simple;
-                currentVerseNum = startVerseNum; 
-                loadVerse(currentVerseNum);
-            } catch(e) { 
-                alert("Failed to load Surah data. Check connection."); 
-                document.getElementById('loading-text').classList.add('hidden'); 
-            }
+        function startGame() {
+            const chapter = allChapters.find(c => c.id == document.getElementById('surah-select').value); if(!chapter) return;
+            startVerseNum = Math.max(1, parseInt(document.getElementById('start-ayah').value)); 
+            endVerseNum = Math.min(parseInt(document.getElementById('end-ayah').value), chapter.verses_count); 
+            document.getElementById('surah-name-display').innerText = document.getElementById('surah-select').options[document.getElementById('surah-select').selectedIndex].text.split('. ')[1]; 
+            sessionScore = 0; document.getElementById('selection-area').classList.add('hidden'); document.getElementById('game-area').classList.remove('hidden'); 
+            currentChapterId = document.getElementById('surah-select').value; currentVerseNum = startVerseNum; isAdvancing = false; loadVerse(currentVerseNum);
         }
 
-        function loadVerse(num) {
-            if(timerInterval) clearInterval(timerInterval);
-            const l = t[currentLang] || t['en']; document.getElementById('verse-progress-display').innerHTML = `${l.ayah} ${num} / ${endVerseNum}`;
+        async function loadVerse(num) {
+            if (currentAbortController) currentAbortController.abort(); 
+            currentAbortController = new AbortController();
+            const signal = currentAbortController.signal;
+            if(timerInterval) clearInterval(timerInterval); 
+            
+            // LOCALIZED AYAH COUNTER
+            const l = t[currentLang];
+            document.getElementById('verse-progress-display').innerHTML = `${l.ayah} ${num} / ${endVerseNum}`;
+
             isVerseAnswered = false; currentBlankStep = 0; currentTypedWord = ""; isFetching = true;
-            
-            const verseData = surahFullData[num - 1]; 
-            wordsData = verseData.words;
-            const valid = wordsData.reduce((acc, w, i) => (w.text ? [...acc, i] : acc), []); 
-            hiddenWordIndices = valid.sort(() => Math.random() - 0.5).slice(0, Math.ceil((parseInt(document.getElementById('difficulty-level').value) / 100) * valid.length)).sort((a, b) => a - b); 
-            
-            renderVerse(num); generateQuiz();
-            const audioEl = document.getElementById('game-audio'); 
-            audioEl.src = `${EVERYAYAH_BASE}/${currentReciterFolder}/${currentChapterId.toString().padStart(3, '0')}${num.toString().padStart(3, '0')}.mp3`;
-            audioEl.onended = () => { if (isVerseAnswered) checkAndAdvance(); };
-            audioEl.onloadeddata = () => { isFetching = false; document.getElementById('loading-text').classList.add('hidden'); document.getElementById('audio-controls').classList.remove('hidden'); togglePlayPause(); if (document.getElementById('game-logic').value === 'advanced') startTimer(); };
+
+            const unlockUI = () => { 
+                if(!isFetching) return;
+                isFetching = false; isAdvancing = false;
+                document.getElementById('loading-text').classList.add('hidden'); 
+                document.getElementById('verse-display').classList.remove('verse-loading');
+                document.getElementById('audio-controls').classList.remove('hidden'); togglePlayPause(); 
+                if (document.getElementById('game-logic').value === 'advanced') startTimer(); 
+            };
+
+            try {
+                const textRes = await fetch(`${API_BASE}/verses/by_key/${currentChapterId}:${num}?words=true&word_fields=text_uthmani`, { signal }); 
+                const textData = await textRes.json(); 
+                wordsData = textData.verse.words.filter(w => w.char_type_name !== 'pause'); 
+                const valid = wordsData.reduce((acc, w, i) => (w.char_type_name === 'word' ? [...acc, i] : acc), []); 
+                hiddenWordIndices = valid.sort(() => Math.random() - 0.5).slice(0, Math.ceil((parseInt(document.getElementById('difficulty-level').value) / 100) * valid.length)).sort((a, b) => a - b); 
+                renderVerse(num); generateQuiz();
+
+                const audioEl = document.getElementById('game-audio'); 
+                audioEl.src = `${EVERYAYAH_BASE}/${currentReciterFolder}/${currentChapterId.toString().padStart(3, '0')}${num.toString().padStart(3, '0')}.mp3`;
+                audioEl.onended = () => { if (isVerseAnswered) checkAndAdvance(); };
+                audioEl.onloadeddata = unlockUI; 
+
+                fetch(`${API_BASE}/recitations/${currentReciterId}/by_ayah/${currentChapterId}:${num}`, { signal })
+                    .then(res => res.json()).then(data => { timeSegments = (data.audio_files && data.audio_files[0].segments) ? data.audio_files[0].segments : []; })
+                    .catch(() => { timeSegments = []; });
+            } catch (e) { if (e.name !== 'AbortError') { isFetching = false; unlockUI(); } }
         }
 
-        function renderVerse(vNum) { const eastern = toEasternArabic(vNum); document.getElementById('verse-display').innerHTML = wordsData.map((w, i) => { if (hiddenWordIndices.includes(i)) return `<span id="word-${i}" class="hidden-word" onclick="if(isMobile) document.getElementById('mobile-input').focus()">${"_".repeat(normalizeArabic(w.text).length)}</span>`; return `<span id="word-${i}" class="word-box">${w.text}</span>`; }).join(" ") + ` <span class="ayah-marker-wrapper"><span class="ayah-marker-crescent">${eastern}</span></span>`; }
+        function renderVerse(vNum) { const eastern = toEasternArabic(vNum); document.getElementById('verse-display').innerHTML = wordsData.map((w, i) => { if (hiddenWordIndices.includes(i)) return `<span id="word-${w.position}" class="hidden-word" onclick="if(isMobile) document.getElementById('mobile-input').focus()">${"_".repeat(normalizeArabic(w.text_uthmani).length)}</span>`; if (w.char_type_name === "end") return `<span id="word-${w.position}" class="ayah-marker-wrapper"><span class="ayah-marker-crescent">${eastern}</span></span>`; return `<span id="word-${w.position}" class="word-box">${w.text_uthmani}</span>`; }).join(" "); }
         
-        function syncGlow() {
-            if (isTransitioning) return; 
-            const audio = document.getElementById('game-audio'); 
-            const beam = document.getElementById('hover-glow-beam'); 
-            const targetBeam = document.getElementById('target-glow-beam');
-            const container = document.getElementById('verse-display').parentElement;
-            
-            if (audio.paused || audio.ended) { beam.style.opacity = 0; return; }
-            
-            const ms = audio.currentTime * 1000; 
-            let currentIdx = -1;
-            wordsData.forEach((w, i) => { if (w.t !== undefined && ms >= w.t) currentIdx = i; });
-            
-            if (currentIdx !== -1) {
-                const el = document.getElementById(`word-${currentIdx}`);
-                if (el) { 
-                    const rect = el.getBoundingClientRect(); 
-                    const parentRect = container.getBoundingClientRect();
-                    beam.style.opacity = 1; 
-                    beam.style.width = `${rect.width * 0.8}px`; 
-                    beam.style.left = `${rect.left - parentRect.left + (rect.width * 0.1)}px`; 
-                    beam.style.top = `${rect.bottom - parentRect.top - 2}px`; 
-                }
-            } else beam.style.opacity = 0;
-
-            const targetIdx = hiddenWordIndices[currentBlankStep];
-            const targetEl = document.getElementById(`word-${targetIdx}`);
-            if (targetEl) { 
-                const tRect = targetEl.getBoundingClientRect();
-                const pRect = container.getBoundingClientRect();
-                targetBeam.style.opacity = 1; 
-                targetBeam.style.width = `${tRect.width}px`; 
-                targetBeam.style.left = `${tRect.left - pRect.left}px`; 
-                targetBeam.style.top = `${tRect.bottom - pRect.top - 2}px`; 
-            } else targetBeam.style.opacity = 0;
-
-            requestAnimationFrame(syncGlow);
-        }
-
         function triggerSuccess() {
             isTransitioning = true; document.getElementById('hover-glow-beam').style.opacity = 0;
-            const targetIdx = hiddenWordIndices[currentBlankStep], el = document.getElementById(`word-${targetIdx}`);
-            el.innerText = wordsData[targetIdx].text; el.classList.remove('hidden-word', 'active-blank'); el.classList.add('filled-word'); 
+            const target = wordsData[hiddenWordIndices[currentBlankStep]], el = document.getElementById(`word-${target.position}`);
+            el.innerText = target.text_uthmani; 
+            el.classList.remove('hidden-word', 'active-blank'); 
+            el.classList.add('filled-word'); 
             userXP += 10; sessionScore += 10; updateProfileUI(); currentBlankStep++; currentTypedWord = "";
             setTimeout(() => { isTransitioning = false; if (currentBlankStep >= hiddenWordIndices.length) { isVerseAnswered = true; checkAndAdvance(); } else generateQuiz(); }, 1500); 
         }
@@ -343,27 +351,27 @@
         
         function checkAnswer(word, btn) { 
             if (isFetching || isVerseAnswered || isAdvancing) return; 
-            if (word === wordsData[hiddenWordIndices[currentBlankStep]].text) { 
-                btn.className = "option-anim bg-emerald-500 text-white border-2 border-emerald-500 text-xl quran-font p-5 rounded-2xl shadow-md min-w-[140px] transition-all scale-105"; 
+            const target = wordsData[hiddenWordIndices[currentBlankStep]]; 
+            if (word === target.text_uthmani) { 
+                btn.classList.remove('bg-white', 'border-stone-200', 'text-stone-700');
+                btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500', 'scale-105'); 
                 triggerSuccess(); 
             } else { 
-                btn.className = "option-anim bg-rose-500 text-white border-2 border-rose-500 text-xl quran-font p-5 rounded-2xl shadow-md min-w-[140px] transition-all scale-95"; 
+                btn.classList.add('bg-rose-500', 'text-white', 'border-rose-500', 'scale-95'); 
                 userXP = Math.max(0, userXP - 5); updateProfileUI(); 
             } 
         }
         
         function handleTypeLetter(char) {
-            if (isFetching || isVerseAnswered || isAdvancing) return; 
-            const target = wordsData[hiddenWordIndices[currentBlankStep]]; if (!target) return; 
-            const targetNorm = normalizeArabic(target.text), inputNorm = normalizeArabic(char), el = document.getElementById(`word-${hiddenWordIndices[currentBlankStep]}`);
+            if (isFetching || isVerseAnswered || isAdvancing) return; const target = wordsData[hiddenWordIndices[currentBlankStep]]; if (!target) return; 
+            const targetNorm = normalizeArabic(target.text_uthmani), inputNorm = normalizeArabic(char), el = document.getElementById(`word-${target.position}`);
             if (inputNorm === targetNorm[currentTypedWord.length]) { 
                 currentTypedWord += char; highlightVirtualKey(char, 'correct');
                 el.innerHTML = `<span class="typed-correct">${currentTypedWord}</span><span class="remaining-blanks">${"_".repeat(targetNorm.length - currentTypedWord.length)}</span>`;
                 if (currentTypedWord.length === targetNorm.length) triggerSuccess(); 
             } else { 
-                userXP = Math.max(0, userXP - 5); updateProfileUI(); highlightVirtualKey(char, 'wrong'); 
-                el.classList.add('error-shake', 'bg-red-50'); 
-                setTimeout(() => el.classList.remove('error-shake', 'bg-red-50'), 400); 
+                userXP = Math.max(0, userXP - 5); updateProfileUI(); highlightVirtualKey(char, 'wrong');
+                el.classList.add('error-shake', 'bg-red-50'); setTimeout(() => el.classList.remove('error-shake', 'bg-red-50'), 400); 
             }
         }
 
@@ -372,36 +380,37 @@
             document.getElementById('quiz-area').classList.remove('hidden');
             if (currentInputMethod === 'choose') {
                 document.getElementById('quiz-options').classList.remove('hidden'); document.getElementById('keyboard-area').classList.add('hidden');
-                const correct = wordsData[targetIdx].text, pool = wordsData.filter(w => w.text && w.text !== correct).map(w => w.text); 
+                const correct = wordsData[targetIdx].text_uthmani, pool = wordsData.filter(w => w.char_type_name === 'word' && w.text_uthmani !== correct).map(w => w.text_uthmani); 
                 let choices = [correct]; while(choices.length < 4 && pool.length > 0) choices.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
                 document.getElementById('quiz-options').innerHTML = choices.sort(() => Math.random() - 0.5).map((o, i) => `<button onclick="checkAnswer('${o}', this)" class="option-anim bg-white border-2 border-stone-200 text-xl quran-font p-5 rounded-2xl shadow-md min-w-[140px] transition-all" style="animation-delay: ${i * 0.05}s">${o}</button>`).join("");
             } else {
                 document.getElementById('quiz-options').classList.add('hidden');
-                if (isMobile) { document.getElementById('keyboard-area').classList.add('hidden'); document.getElementById('mobile-input').focus(); } 
-                else { 
-                    document.getElementById('keyboard-area').classList.remove('hidden'); 
-                    document.getElementById('keyboard-rows').innerHTML = arabicLayout.map(row => `<div class="flex justify-center gap-1.5 md:gap-3">${row.map(c => `<button class="key-sq" onclick="handleTypeLetter('${c}')">${c}</button>`).join('')}</div>`).join(''); 
+                if (isMobile) {
+                    document.getElementById('keyboard-area').classList.add('hidden');
+                    document.getElementById('mobile-input').focus();
+                } else {
+                    document.getElementById('keyboard-area').classList.remove('hidden');
+                    document.getElementById('keyboard-rows').innerHTML = arabicLayout.map(row => `<div class="flex justify-center gap-1.5 md:gap-3">${row.map(c => `<button class="key-sq" onclick="handleTypeLetter('${c}')">${c}</button>`).join('')}</div>`).join('');
                 }
             }
-            document.querySelectorAll('.hidden-word').forEach(el => el.classList.remove('active-blank')); 
-            const el = document.getElementById(`word-${hiddenWordIndices[currentBlankStep]}`); if(el) el.classList.add('active-blank');
+            document.querySelectorAll('.hidden-word').forEach(el => el.classList.remove('active-blank')); const pos = wordsData[hiddenWordIndices[currentBlankStep]]?.position; if(pos) document.getElementById(`word-${pos}`).classList.add('active-blank');
         }
 
         function checkAndAdvance() { 
-            if (isAdvancing) return; isAdvancing = true; 
-            if (currentVerseNum < endVerseNum) { 
-                currentVerseNum++; 
-                loadVerse(currentVerseNum); 
-                document.getElementById('session-progress-bar').style.width = `${((currentVerseNum - startVerseNum) / (endVerseNum - startVerseNum + 1)) * 100}%`;
-            } else { 
-                document.getElementById('session-progress-bar').style.width = "100%";
-                showFinalResult(); 
+            if (isAdvancing) return; 
+            const audio = document.getElementById('game-audio'); 
+            if (isVerseAnswered && (audio.ended || audio.paused)) { 
+                isAdvancing = true; 
+                const key = `${currentChapterId}:${currentVerseNum}`; 
+                if (!learnedAyahsList.includes(key)) { learnedAyahsList.push(key); localStorage.setItem('hifz_learned_ayahs', JSON.stringify(learnedAyahsList)); } 
+                updateProfileUI(); 
+                document.getElementById('session-progress-bar').style.width = `${((currentVerseNum - startVerseNum + 1) / (endVerseNum - startVerseNum + 1)) * 100}%`; 
+                if (currentVerseNum < endVerseNum) { currentVerseNum++; loadVerse(currentVerseNum); } else showFinalResult(); 
             } 
         }
-
         function forceNextVerse() { if (!isAdvancing) { isAdvancing = true; if (currentVerseNum < endVerseNum) { currentVerseNum++; loadVerse(currentVerseNum); } else showFinalResult(); } }
-        function togglePlayPause() { const a = document.getElementById('game-audio'), btn = document.getElementById('play-pause-btn'); const l = t[currentLang] || t['en']; if (a.paused) { a.play().then(() => { btn.innerText = l.pause; requestAnimationFrame(syncGlow); }).catch(()=>{}); } else { a.pause(); btn.innerText = l.play; } }
-        function replayAudio() { document.getElementById('game-audio').currentTime = 0; togglePlayPause(); }
+        function togglePlayPause() { const a = document.getElementById('game-audio'), btn = document.getElementById('play-pause-btn'); if (a.paused) { a.play().then(() => { btn.innerText = t[currentLang].pause; }).catch(()=>{}); } else { a.pause(); btn.innerText = t[currentLang].play; } }
+        function replayAudio() { document.getElementById('game-audio').currentTime = 0; }
         function showFinalResult() { stopAudio(); document.getElementById('game-area').classList.add('hidden'); document.getElementById('result-area').classList.remove('hidden'); document.getElementById('final-score-display').innerText = sessionScore; }
         function resetToSelection() { location.reload(); }
         function startTimer() { timeLeft = 20; document.getElementById('timer-display').classList.remove('hidden'); timerInterval = setInterval(() => { timeLeft--; document.getElementById('timer-display').innerText = `⏱ ${timeLeft}s`; if (timeLeft <= 0) { clearInterval(timerInterval); showFinalResult(); } }, 1000); }
